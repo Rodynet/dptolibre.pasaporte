@@ -1,8 +1,8 @@
-Basado en el manual de identidad visual y en las reglas maestras de la plataforma, he reescrito el código inicial. 
+Para lograr ese aspecto visual muy profesional, confiable y con la estética limpia y transaccional característica de Mercado Libre (o Mercado Pago), he adaptado la interfaz utilizando fondos gris claro (`#ebebeb`), tarjetas blancas puras con sombras sutiles, bordes definidos y botones rectangulares con un radio de borde más conservador. 
 
-Esta versión incluye la renderización gráfica del nuevo logotipo (la "puerta abierta" con la paleta Azul Tecnológico y Azul Marino), los botones de acceso mediante Apple y Google (SSO) con sus respectivos íconos, y detiene el flujo exactamente en la selección de perfil de fricción cero.
+Al mismo tiempo, el código respeta estrictamente el **Manual de Identidad Visual de dptolibre**: incorpora el logotipo de la **"puerta abierta"** renderizado con la paleta oficial (Azul Tecnológico y Azul Marino) y la tipografía en minúsculas. También incluye los mensajes de marca y el flujo de "Fricción Cero" de los tres perfiles.
 
-Puedes guardar este código como un archivo `.html` y abrirlo en tu navegador:
+Copia y guarda este código en un archivo `.html` para probar la experiencia completa en tu navegador:
 
 ```html
 <!DOCTYPE html>
@@ -10,21 +10,26 @@ Puedes guardar este código como un archivo `.html` y abrirlo en tu navegador:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dptolibre - Onboarding</title>
+    <title>dptolibre - App Onboarding</title>
     <style>
         :root {
             /* Paleta Corporativa dptolibre */
-            --vibrant-blue: #0056fb; /* Azul Tecnológico (Puerta y "dpto") */
-            --navy-blue: #0f172a;    /* Azul Marino ("libre") */
-            --text-muted: #64748b;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --border-light: #e2e8f0;
+            --brand-blue: #0056fb; /* Azul Tecnológico */
+            --brand-navy: #0f172a; /* Azul Marino */
+            --success-green: #22c55e;
+            
+            /* Estilo "ML / Mercado Pago" */
+            --ml-bg: #ebebeb;
+            --ml-card: #ffffff;
+            --ml-border: #e5e5e5;
+            --ml-text-main: #333333;
+            --ml-text-muted: #999999;
+            --ml-shadow: 0 1px 2px 0 rgba(0,0,0,.15);
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #d1d5db;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -36,84 +41,111 @@ Puedes guardar este código como un archivo `.html` y abrirlo en tu navegador:
         .mobile-container {
             width: 375px;
             height: 812px;
-            background-color: var(--bg-color);
+            background-color: var(--ml-bg);
             border-radius: 40px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
             overflow: hidden;
             position: relative;
-            border: 8px solid var(--navy-blue);
+            border: 8px solid var(--brand-navy);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Colorido opcional (Estilo FinTech) */
+        .top-banner {
+            background-color: var(--brand-blue);
+            height: 180px;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
         }
 
         .screen {
-            padding: 40px 24px;
             height: 100%;
             box-sizing: border-box;
             display: none;
             flex-direction: column;
-            animation: fadeIn 0.4s ease;
+            animation: fadeIn 0.3s ease;
+            position: relative;
+            z-index: 1;
+            padding: 50px 20px 20px 20px;
         }
 
         .screen.active {
             display: flex;
         }
 
-        /* Logotipo y Cabeceras */
-        .logo-container {
+        /* Tarjeta Blanca Central (Estilo ML) */
+        .white-card {
+            background-color: var(--ml-card);
+            border-radius: 6px;
+            padding: 30px 24px;
+            box-shadow: var(--ml-shadow);
+            margin-bottom: 20px;
             text-align: center;
-            margin-bottom: 25px;
-            margin-top: 10px;
+        }
+
+        /* Logotipo Renderizado dptolibre */
+        .logo-svg {
+            margin-bottom: 10px;
         }
 
         .tagline {
-            color: var(--text-muted);
-            font-size: 14px;
-            margin: 5px 0 0 0;
-            font-weight: 600;
+            color: var(--ml-text-muted);
+            font-size: 13px;
+            margin: 0 0 20px 0;
+            font-weight: 500;
         }
 
         h2 {
-            color: var(--navy-blue);
-            font-size: 24px;
-            margin-bottom: 8px;
-            font-weight: 700;
+            color: var(--ml-text-main);
+            font-size: 20px;
+            margin: 0 0 8px 0;
+            font-weight: 600;
         }
 
         p.subtitle {
-            color: var(--text-muted);
-            font-size: 15px;
+            color: var(--ml-text-muted);
+            font-size: 14px;
             line-height: 1.4;
-            margin-bottom: 30px;
+            margin: 0 0 24px 0;
         }
 
-        /* Formularios */
+        /* Formularios y Inputs Limpios */
         .input-group {
             margin-bottom: 16px;
+            text-align: left;
         }
 
         input[type="email"], input[type="password"] {
             width: 100%;
-            padding: 16px;
-            border: 1px solid var(--border-light);
-            border-radius: 12px;
+            padding: 14px 16px;
+            border: 1px solid var(--ml-border);
+            border-radius: 6px;
             box-sizing: border-box;
             font-size: 16px;
-            background-color: var(--card-bg);
-            transition: border-color 0.2s;
+            color: var(--ml-text-main);
+            background-color: #fafafa;
+            transition: all 0.2s;
         }
 
-        input:focus {
+        input[type="email"]:focus, input[type="password"]:focus {
             outline: none;
-            border-color: var(--vibrant-blue);
+            border-color: var(--brand-blue);
+            background-color: var(--ml-card);
+            box-shadow: 0 0 0 1px var(--brand-blue);
         }
 
-        /* Botones Principales y SSO */
+        /* Botones Profesionales */
         .btn {
             width: 100%;
             padding: 16px;
             border: none;
-            border-radius: 12px;
+            border-radius: 6px;
             font-size: 16px;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
             margin-bottom: 12px;
@@ -124,9 +156,8 @@ Puedes guardar este código como un archivo `.html` y abrirlo en tu navegador:
         }
 
         .btn-primary {
-            background-color: var(--vibrant-blue);
+            background-color: var(--brand-blue);
             color: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 86, 251, 0.2);
         }
 
         .btn-primary:hover {
@@ -134,14 +165,14 @@ Puedes guardar este código como un archivo `.html` y abrirlo en tu navegador:
         }
 
         .btn-sso {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-light);
-            color: var(--navy-blue);
-            font-weight: 600;
+            background-color: var(--ml-card);
+            border: 1px solid var(--ml-border);
+            color: var(--brand-navy);
+            box-shadow: 0 1px 1px 0 rgba(0,0,0,.05);
         }
 
         .btn-sso:hover {
-            background-color: #f1f5f9;
+            background-color: #f5f5f5;
         }
 
         .btn-sso svg {
@@ -154,64 +185,71 @@ Puedes guardar este código como un archivo `.html` y abrirlo en tu navegador:
             align-items: center;
             text-align: center;
             margin: 20px 0;
-            color: var(--text-muted);
-            font-size: 13px;
+            color: var(--ml-text-muted);
+            font-size: 12px;
         }
 
         .divider::before, .divider::after {
             content: '';
             flex: 1;
-            border-bottom: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--ml-border);
         }
 
-        .divider:not(:empty)::before { margin-right: .5em; }
-        .divider:not(:empty)::after { margin-left: .5em; }
+        .divider:not(:empty)::before { margin-right: 10px; }
+        .divider:not(:empty)::after { margin-left: 10px; }
 
-        /* Tarjetas de Selección de Perfil */
+        /* Selector de Perfil - Tarjetas Rectangulares ML */
         .profile-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-light);
-            border-radius: 16px;
-            padding: 18px;
-            margin-bottom: 16px;
+            background-color: var(--ml-card);
+            border: 1px solid var(--ml-border);
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: var(--ml-shadow);
+            text-align: left;
         }
 
         .profile-card:hover {
-            border-color: var(--vibrant-blue);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 86, 251, 0.1);
+            border-color: var(--brand-blue);
+            box-shadow: 0 4px 8px rgba(0, 86, 251, 0.15);
+            transform: translateY(-1px);
         }
 
         .profile-icon {
-            font-size: 26px;
+            font-size: 24px;
             margin-right: 16px;
-            background: #eff6ff;
-            padding: 12px;
-            border-radius: 12px;
-            color: var(--vibrant-blue);
+            color: var(--brand-blue);
+            background-color: #f0f4ff;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            flex-shrink: 0;
         }
 
         .profile-text h3 {
             margin: 0 0 4px 0;
             font-size: 16px;
-            color: var(--navy-blue);
+            color: var(--ml-text-main);
+            font-weight: 600;
         }
 
         .profile-text p {
             margin: 0;
             font-size: 13px;
-            color: var(--text-muted);
+            color: var(--ml-text-muted);
             line-height: 1.3;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateX(10px); }
-            to { opacity: 1; transform: translateX(0); }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -219,88 +257,96 @@ Puedes guardar este código como un archivo `.html` y abrirlo en tu navegador:
 
     <div class="mobile-container">
         
-        <!-- PANTALLA 1: ACCESO UNIVERSAL (dptolibre) -->
+        <!-- Banner superior para darle el toque de Billetera/Fintech -->
+        <div class="top-banner" id="banner"></div>
+
+        <!-- PANTALLA 1: ACCESO UNIVERSAL -->
         <div id="screen1" class="screen active">
-            <div class="logo-container">
-                <!-- Logotipo Renderizado (Puerta Abierta y Texto) -->
-                <svg viewBox="0 0 150 120" width="120" xmlns="http://www.w3.org/2000/svg">
-                    <g transform="translate(55, 10)">
-                        <!-- Panel Izquierdo Sólido (Azul Tecnológico) -->
-                        <polygon points="0,20 20,5 20,75 0,60" fill="var(--vibrant-blue)"/>
-                        <!-- Panel Derecho Delineado -->
-                        <polyline points="20,5 40,5 40,75 20,75" fill="none" stroke="var(--vibrant-blue)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            
+            <div class="white-card">
+                <!-- Logotipo dptolibre (Puerta Abierta) -->
+                <svg class="logo-svg" viewBox="0 0 160 110" width="110" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Isotipo Puerta -->
+                    <g transform="translate(60, 5)">
+                        <!-- Panel Sólido (Izquierdo) -->
+                        <polygon points="0,20 18,5 18,70 0,55" fill="var(--brand-blue)"/>
+                        <!-- Panel Delineado (Derecho) -->
+                        <polyline points="18,5 38,5 38,70 18,70" fill="none" stroke="var(--brand-blue)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                     </g>
-                    <!-- Tipografía dptolibre (Sin serifa, minúsculas) -->
-                    <text x="25" y="110" font-family="'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="28" fill="var(--vibrant-blue)">dpto</text>
-                    <text x="86" y="110" font-family="'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="28" fill="var(--navy-blue)">libre</text>
+                    <!-- Texto "dpto libre" en minúsculas -->
+                    <text x="10" y="105" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="28" fill="var(--brand-blue)" letter-spacing="-0.5">dpto</text>
+                    <text x="74" y="105" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="28" fill="var(--brand-navy)" letter-spacing="-0.5">libre</text>
                 </svg>
+                
                 <p class="tagline">Sin complicaciones. Sin fiador.</p>
+
+                <h2>¡Hola! Ingresa tu e-mail</h2>
+                <p class="subtitle">Abre las puertas para un nuevo hogar.</p>
+
+                <div class="input-group">
+                    <input type="email" placeholder="E-mail" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" placeholder="Contraseña" required>
+                </div>
+
+                <button class="btn btn-primary" onclick="nextScreen('screen2')">Continuar</button>
+
+                <div class="divider">o ingresa con tu cuenta</div>
+
+                <!-- Botones SSO -->
+                <button class="btn btn-sso">
+                    <svg viewBox="0 0 384 512" xmlns="http://www.w3.org/2000/svg"><path fill="#000000" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+                    Continuar con Apple
+                </button>
+                <button class="btn btn-sso">
+                    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
+                    Continuar con Google
+                </button>
             </div>
-
-            <h2>Bienvenido</h2>
-            <p class="subtitle">Abre las puertas para un nuevo hogar.</p>
-
-            <div class="input-group">
-                <input type="email" placeholder="Correo electrónico" required>
-            </div>
-            <div class="input-group">
-                <input type="password" placeholder="Contraseña" required>
-            </div>
-
-            <button class="btn btn-primary" onclick="nextScreen('screen2')">Entrar</button>
-
-            <div class="divider">o ingresa con</div>
-
-            <!-- Botones SSO -->
-            <button class="btn btn-sso">
-                <!-- Ícono Apple -->
-                <svg viewBox="0 0 384 512" xmlns="http://www.w3.org/2000/svg"><path fill="#000000" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
-                Apple
-            </button>
-            <button class="btn btn-sso">
-                <!-- Ícono Google -->
-                <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
-                Google
-            </button>
         </div>
 
-        <!-- PANTALLA 2: SELECTOR DE PERFIL (Fricción Cero) -->
+        <!-- PANTALLA 2: SELECTOR DE PERFIL -->
         <div id="screen2" class="screen">
-            <div style="margin-bottom: 25px;">
+            
+            <div style="margin-bottom: 20px; text-align: center;">
+                <!-- Logo versión pequeña superior -->
                 <svg viewBox="0 0 100 40" width="80" xmlns="http://www.w3.org/2000/svg">
                     <g transform="translate(10, 0) scale(0.35)">
-                        <polygon points="0,20 20,5 20,75 0,60" fill="var(--vibrant-blue)"/>
-                        <polyline points="20,5 40,5 40,75 20,75" fill="none" stroke="var(--vibrant-blue)" stroke-width="4"/>
+                        <polygon points="0,20 18,5 18,70 0,55" fill="#ffffff"/>
+                        <polyline points="18,5 38,5 38,70 18,70" fill="none" stroke="#ffffff" stroke-width="4"/>
                     </g>
-                    <text x="35" y="25" font-family="'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="16" fill="var(--vibrant-blue)">dpto</text>
-                    <text x="68" y="25" font-family="'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="16" fill="var(--navy-blue)">libre</text>
+                    <text x="35" y="25" font-family="Arial, sans-serif" font-weight="700" font-size="16" fill="#ffffff">dpto</text>
+                    <text x="68" y="25" font-family="Arial, sans-serif" font-weight="700" font-size="16" fill="#ffffff">libre</text>
                 </svg>
             </div>
 
-            <h2>¿Qué buscas hoy?</h2>
-            <p class="subtitle">Elige cómo quieres operar en la plataforma.</p>
+            <div class="white-card" style="padding: 24px 20px;">
+                <h2 style="margin-bottom: 5px;">¿Cómo quieres operar?</h2>
+                <p class="subtitle" style="margin-bottom: 20px;">Selecciona tu perfil para continuar.</p>
 
-            <div class="profile-card" onclick="endFlow('Inquilino')">
-                <div class="profile-icon">🔑</div>
-                <div class="profile-text">
-                    <h3>Soy Inquilino</h3>
-                    <p>Usa tu reputación como aval. Alquila tu nuevo hogar hoy mismo.</p>
+                <div class="profile-card" onclick="endFlow('Inquilino')">
+                    <div class="profile-icon">🔑</div>
+                    <div class="profile-text">
+                        <h3>Soy Inquilino</h3>
+                        <p>Usa tu reputación como aval. Alquila tu nuevo hogar hoy mismo.</p>
+                    </div>
                 </div>
-            </div>
 
-            <div class="profile-card" onclick="endFlow('Propietario')">
-                <div class="profile-icon">🛡️</div>
-                <div class="profile-text">
-                    <h3>Soy Propietario</h3>
-                    <p>Tu patrimonio 100% resguardado con nuestro Escudo Verde.</p>
+                <div class="profile-card" onclick="endFlow('Propietario')">
+                    <div class="profile-icon">🛡️</div>
+                    <div class="profile-text">
+                        <h3>Soy Propietario</h3>
+                        <p>Tu patrimonio resguardado de forma automática.</p>
+                    </div>
                 </div>
-            </div>
 
-            <div class="profile-card" onclick="endFlow('Administrador')">
-                <div class="profile-icon">🏢</div>
-                <div class="profile-text">
-                    <h3>Soy Administrador</h3>
-                    <p>Orquesta cobros, contratos y liquidaciones automáticamente.</p>
+                <div class="profile-card" onclick="endFlow('Administrador')">
+                    <div class="profile-icon">🏢</div>
+                    <div class="profile-text">
+                        <h3>Soy Administrador</h3>
+                        <p>Orquesta cobros, contratos y liquidaciones fácilmente.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -313,12 +359,25 @@ Puedes guardar este código como un archivo `.html` y abrirlo en tu navegador:
                 screen.classList.remove('active');
             });
             document.getElementById(screenId).classList.add('active');
+            
+            // Efecto visual: si pasamos a la pantalla de perfiles, reducimos el header azul
+            if(screenId === 'screen2') {
+                document.getElementById('banner').style.height = '120px';
+                document.getElementById('banner').style.transition = 'height 0.3s ease';
+            }
         }
 
         function endFlow(perfil) {
-            alert('Has seleccionado el perfil: ' + perfil + '. Aquí concluye la demostración del flujo inicial de dptolibre.');
+            alert('Has seleccionado el perfil: ' + perfil + '. Iniciando carga del Dashboard financiero...');
         }
     </script>
 </body>
 </html>
 ```
+
+### ¿Qué hace que este diseño se vea como Mercado Libre / Mercado Pago pero manteniendo la marca dptolibre?
+
+1. **Jerarquía Visual y Cajas Blancas (Cards):** El estándar de ML elimina el contenido flotante sobre fondos blancos. En cambio, utiliza un fondo gris corporativo (`#ebebeb`) y coloca la información en **tarjetas blancas flotantes** con bordes apenas perceptibles y sombras sutiles. Esto concentra la atención del usuario (Single Action UI) y grita "plataforma segura transaccional".
+2. **El "Banner" Superior:** Hemos añadido un bloque de color superior en el `Azul Tecnológico` de dptolibre (común en las apps FinTech de Mercado Pago). Al pasar de la pantalla de Login a la de Perfiles, el banner se anima y se encoge, dando una sensación nativa y fluida.
+3. **Logotipo Oficial e Identidad de Marca:** Se implementó gráficamente el logotipo en SVG respetando la construcción del isotipo de la **puerta abriéndose** (panel izquierdo sólido, derecho en trazado) y la tipografía geométrica en minúsculas `dptolibre`.
+4. **Copywriting de "Fricción Cero":** Se mantuvieron exactamente los pilares de la marca: *"Sin complicaciones. Sin fiador."* y la promesa de *"Abre las puertas para un nuevo hogar"*, presentados con una fuente limpia, sin serifas y de pesos equilibrados para facilitar la lectura rápida.
