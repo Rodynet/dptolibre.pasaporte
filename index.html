@@ -1,697 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DptoLibre OS - Pasaporte de Alquiler</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --brand-blue: #0055DD;
+            --brand-dark: #0D1B4B;
+            --brand-cyan: #00D1FF;
+        }
 
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #E8EAF0;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+        .mobile-shell {
+            width: 100%;
+            height: 100vh;
+            max-width: 414px;
+            margin: 0 auto;
+            background: #F0F2F6;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.2);
+        }
 
-  :root {
-    --blue: #0066FF;
-    --navy: #003366;
-    --blue-light: #E6F0FF;
-    --blue-mid: #378ADD;
-    --green: #1D9E75;
-    --green-light: #E1F5EE;
-    --amber: #EF9F27;
-    --amber-light: #FAEEDA;
-    --red: #E24B4A;
-    --red-light: #FCEBEB;
-    --gray-bg: #F5F6FA;
-    --gray-border: rgba(0,0,0,0.08);
-    --text-main: #1A1A2E;
-    --text-muted: #6B7280;
-    --text-soft: #9CA3AF;
-    --white: #FFFFFF;
-    --font: 'DM Sans', sans-serif;
-    --mono: 'DM Mono', monospace;
-  }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        .animate-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-  body { background: #EAEDF5; display: flex; justify-content: center; align-items: flex-start; padding: 20px; font-family: var(--font); }
+        .passport-gradient {
+            background: linear-gradient(135deg, #0D1B4B 0%, #0055DD 100%);
+        }
 
-  .phone-frame {
-    width: 375px;
-    height: 780px;
-    background: var(--white);
-    border-radius: 44px;
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 32px 80px rgba(0,30,80,0.22), 0 0 0 0.5px rgba(0,0,0,0.12);
-    flex-shrink: 0;
-  }
+        .logo-font {
+            letter-spacing: -0.05em;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-  .notch {
-    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-    width: 130px; height: 30px; background: var(--white); border-radius: 0 0 18px 18px; z-index: 100;
-  }
-  .notch::before {
-    content: ''; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-    width: 40px; height: 5px; background: #D1D5DB; border-radius: 10px;
-  }
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-  .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--gray-bg); }
-  .screen.active { display: flex; }
+        const Icon = ({ name, size = 24, className = "" }) => {
+            useEffect(() => { window.lucide && window.lucide.createIcons(); }, [name]);
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
 
-  .status-bar {
-    height: 44px; background: transparent; display: flex; align-items: flex-end;
-    padding: 0 24px 8px; justify-content: space-between; flex-shrink: 0;
-  }
-  .status-time { font-size: 12px; font-weight: 600; color: var(--text-main); font-family: var(--mono); }
-  .status-icons { display: flex; gap: 4px; align-items: center; }
-  .status-icons span { font-size: 11px; color: var(--text-main); }
-
-  .top-bar {
-    background: var(--white);
-    padding: 12px 20px 14px;
-    display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 0.5px solid var(--gray-border);
-    flex-shrink: 0;
-  }
-
-  .avatar-row { display: flex; align-items: center; gap: 10px; }
-  .avatar {
-    width: 38px; height: 38px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--blue) 0%, var(--navy) 100%);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 600; color: white;
-    flex-shrink: 0;
-  }
-  .user-name { font-size: 14px; font-weight: 600; color: var(--text-main); }
-  .user-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
-  .notif-btn {
-    width: 36px; height: 36px; border-radius: 50%; background: var(--gray-bg);
-    display: flex; align-items: center; justify-content: center; position: relative; border: none; cursor: pointer;
-  }
-  .notif-dot {
-    position: absolute; top: 6px; right: 6px;
-    width: 8px; height: 8px; border-radius: 50%; background: var(--red);
-    border: 2px solid white;
-  }
-
-  .scroll-area { flex: 1; overflow-y: auto; padding: 16px 16px 80px; }
-  .scroll-area::-webkit-scrollbar { display: none; }
-
-  .section-label {
-    font-size: 11px; font-weight: 600; color: var(--text-soft);
-    text-transform: uppercase; letter-spacing: 0.06em; margin: 16px 0 8px 4px;
-  }
-
-  .kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-  .kpi-card {
-    background: var(--white); border-radius: 16px; padding: 14px 16px;
-    border: 0.5px solid var(--gray-border);
-  }
-  .kpi-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
-  .kpi-value { font-size: 22px; font-weight: 600; }
-  .kpi-sub { font-size: 11px; margin-top: 4px; }
-
-  .score-arc {
-    width: 100%; text-align: center; padding: 4px 0 2px;
-  }
-
-  .wallet-card {
-    background: var(--navy);
-    border-radius: 20px; padding: 18px 20px;
-    color: white; margin-bottom: 10px;
-    position: relative; overflow: hidden;
-  }
-  .wallet-card::before {
-    content: ''; position: absolute;
-    top: -30px; right: -30px;
-    width: 120px; height: 120px;
-    border-radius: 50%;
-    background: rgba(0,102,255,0.3);
-  }
-  .wallet-card::after {
-    content: ''; position: absolute;
-    bottom: -40px; left: 20px;
-    width: 90px; height: 90px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-  }
-  .wallet-top { display: flex; justify-content: space-between; align-items: flex-start; }
-  .wallet-label { font-size: 11px; opacity: 0.6; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .wallet-amount { font-size: 28px; font-weight: 600; font-family: var(--mono); }
-  .wallet-badge {
-    background: rgba(29,158,117,0.25); color: #5DCAA5;
-    font-size: 10px; font-weight: 600; padding: 4px 8px; border-radius: 20px;
-    border: 1px solid rgba(29,158,117,0.3);
-  }
-  .wallet-bank { font-size: 12px; opacity: 0.5; margin-top: 4px; }
-  .wallet-actions { display: flex; gap: 8px; margin-top: 14px; }
-  .wallet-btn {
-    flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
-    color: white; border-radius: 10px; padding: 8px; font-size: 12px; font-weight: 500;
-    cursor: pointer; font-family: var(--font); text-align: center;
-  }
-  .wallet-btn:hover { background: rgba(255,255,255,0.18); }
-
-  .card {
-    background: var(--white); border-radius: 16px; padding: 16px;
-    border: 0.5px solid var(--gray-border); margin-bottom: 10px;
-  }
-  .card-row { display: flex; justify-content: space-between; align-items: center; }
-  .card-title { font-size: 14px; font-weight: 600; color: var(--text-main); }
-  .card-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-  .badge {
-    font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
-  }
-  .badge-green { background: var(--green-light); color: var(--green); }
-  .badge-amber { background: var(--amber-light); color: #854F0B; }
-  .badge-blue { background: var(--blue-light); color: var(--navy); }
-  .badge-red { background: var(--red-light); color: #A32D2D; }
-
-  .progress-bar-wrap { background: var(--gray-bg); border-radius: 8px; height: 7px; margin-top: 10px; overflow: hidden; }
-  .progress-bar-fill { height: 100%; border-radius: 8px; background: var(--blue); }
-
-  .pay-btn {
-    width: 100%; margin-top: 12px; padding: 12px;
-    border-radius: 12px; border: none; cursor: pointer;
-    font-size: 14px; font-weight: 600; font-family: var(--font);
-    background: var(--blue); color: white;
-  }
-  .pay-btn:hover { background: var(--navy); }
-  .pay-btn.secondary { background: var(--blue-light); color: var(--navy); }
-
-  .alert-card {
-    background: var(--red-light); border: 1px solid rgba(226,75,74,0.2);
-    border-radius: 16px; padding: 14px 16px; margin-bottom: 10px;
-  }
-  .alert-title { font-size: 14px; font-weight: 600; color: #A32D2D; }
-  .alert-sub { font-size: 12px; color: #791F1F; margin-top: 2px; }
-  .alert-amount { font-size: 22px; font-weight: 700; color: var(--red); margin: 6px 0; font-family: var(--mono); }
-
-  .divider { height: 0.5px; background: var(--gray-border); margin: 12px 0; }
-
-  .list-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
-  .list-icon {
-    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; font-size: 16px;
-  }
-  .list-text { flex: 1; }
-  .list-title { font-size: 13px; font-weight: 500; color: var(--text-main); }
-  .list-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
-  .list-right { font-size: 13px; font-weight: 600; color: var(--text-main); text-align: right; }
-  .list-right-sub { font-size: 11px; color: var(--text-muted); }
-
-  .score-screen-header {
-    background: var(--navy); padding: 20px 20px 30px; color: white;
-  }
-  .score-big { font-size: 56px; font-weight: 700; font-family: var(--mono); text-align: center; }
-  .score-level { text-align: center; font-size: 13px; opacity: 0.7; margin-top: 4px; }
-  .score-arc-svg { display: block; margin: 0 auto 4px; }
-
-  .tab-pill-row { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 2px; }
-  .tab-pill {
-    font-size: 12px; font-weight: 500; padding: 6px 14px; border-radius: 20px;
-    border: 1px solid var(--gray-border); background: var(--white);
-    color: var(--text-muted); cursor: pointer; white-space: nowrap;
-  }
-  .tab-pill.active { background: var(--navy); color: white; border-color: var(--navy); }
-
-  .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-  .action-btn {
-    background: var(--white); border: 0.5px solid var(--gray-border);
-    border-radius: 16px; padding: 16px 14px; cursor: pointer; text-align: left;
-  }
-  .action-btn:hover { background: var(--blue-light); border-color: var(--blue); }
-  .action-icon { font-size: 20px; margin-bottom: 8px; }
-  .action-label { font-size: 12px; font-weight: 600; color: var(--text-main); }
-  .action-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-  .ticket-row {
-    display: flex; align-items: center; gap: 12px; padding: 12px 0;
-    border-bottom: 0.5px solid var(--gray-border);
-  }
-  .ticket-row:last-child { border-bottom: none; }
-  .ticket-status {
-    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-  }
-  .ticket-status.open { background: var(--amber); }
-  .ticket-status.closed { background: var(--green); }
-  .ticket-status.pending { background: var(--blue); }
-
-  .bottom-nav {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    height: 76px; background: var(--white);
-    border-top: 0.5px solid var(--gray-border);
-    display: flex; align-items: center;
-    padding: 0 8px 12px; z-index: 50;
-  }
-  .nav-item {
-    flex: 1; display: flex; flex-direction: column; align-items: center;
-    gap: 3px; cursor: pointer; padding: 6px 4px; border-radius: 12px;
-    border: none; background: none;
-  }
-  .nav-item:hover { background: var(--gray-bg); }
-  .nav-icon { font-size: 18px; line-height: 1; }
-  .nav-label { font-size: 10px; font-weight: 500; color: var(--text-muted); }
-  .nav-item.active .nav-label { color: var(--blue); }
-  .nav-item.active .nav-icon-circle {
-    background: var(--blue-light);
-  }
-  .nav-icon-circle {
-    width: 32px; height: 32px; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-  }
-
-  .safe-icon { font-size: 18px; }
-
-  .header-back {
-    display: flex; align-items: center; gap: 10px; padding: 12px 20px 14px;
-    background: var(--white); border-bottom: 0.5px solid var(--gray-border); flex-shrink: 0;
-  }
-  .back-btn {
-    width: 32px; height: 32px; border-radius: 50%; background: var(--gray-bg);
-    display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; font-size: 14px;
-  }
-  .header-title { font-size: 15px; font-weight: 600; color: var(--text-main); }
-
-  .month-row {
-    display: flex; justify-content: space-between; align-items: center; padding: 12px 0;
-    border-bottom: 0.5px solid var(--gray-border);
-  }
-  .month-row:last-child { border-bottom: none; }
-  .month-name { font-size: 13px; font-weight: 500; color: var(--text-main); }
-  .month-amount { font-size: 13px; font-weight: 600; font-family: var(--mono); }
-  .month-status { font-size: 11px; }
-
-  .shimmer-row { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
-</style>
-
-<div style="display: flex; justify-content: center; align-items: flex-start; padding: 12px 0; min-height: 820px;">
-  <div class="phone-frame">
-    <div class="notch"></div>
-
-    <!-- SCREEN 1: INICIO -->
-    <div class="screen active" id="screen-inicio">
-      <div class="status-bar">
-        <span class="status-time">9:41</span>
-        <div class="status-icons">
-          <span>●●●</span><span>WiFi</span><span>⬛</span>
-        </div>
-      </div>
-      <div class="top-bar">
-        <div class="avatar-row">
-          <div class="avatar">MR</div>
-          <div>
-            <div class="user-name">Marcos Rodríguez</div>
-            <div class="user-sub">Nivel Gold · 720 pts</div>
-          </div>
-        </div>
-        <button class="notif-btn">
-          🔔<span class="notif-dot"></span>
-        </button>
-      </div>
-
-      <div class="scroll-area">
-        <div class="kpi-row">
-          <div class="kpi-card" style="cursor:pointer" onclick="showScreen('screen-score')">
-            <div class="kpi-label">Rental Score</div>
-            <svg class="score-arc-svg" width="80" height="44" viewBox="0 0 80 44">
-              <path d="M8 40 A36 36 0 0 1 72 40" fill="none" stroke="#E6F0FF" stroke-width="6" stroke-linecap="round"/>
-              <path d="M8 40 A36 36 0 0 1 72 40" fill="none" stroke="#0066FF" stroke-width="6" stroke-linecap="round" stroke-dasharray="113" stroke-dashoffset="34"/>
-              <text x="40" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="#003366" font-family="DM Mono, monospace">720</text>
-            </svg>
-            <div class="kpi-sub" style="color:var(--blue); font-weight:600;">Gold</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Millas acumuladas</div>
-            <div class="kpi-value" style="color:var(--amber); font-family:var(--mono);">3.240</div>
-            <div class="kpi-sub" style="color:var(--text-muted);">Disponibles para canje</div>
-          </div>
-        </div>
-
-        <div class="wallet-card" onclick="showScreen('screen-wallet')" style="cursor:pointer">
-          <div class="wallet-top">
-            <div>
-              <div class="wallet-label">Saldo blindado</div>
-              <div class="wallet-amount">$245.000</div>
-              <div class="wallet-bank">Banco Galicia ···4521</div>
+        // --- COMPONENTES DE MARCA ---
+        const Logo = ({ light = false, size = "md" }) => (
+            <div className={`flex flex-col items-center ${light ? 'text-white' : 'text-[#0D1B4B]'}`}>
+                <svg width={size === "lg" ? "56" : "32"} viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 0L32 6.4V33.6L16 40V6.4L16 0Z" fill={light ? "white" : "#0055DD"} fillOpacity="0.3"/>
+                    <path d="M0 6.4L16 0V33.6L0 40V6.4Z" fill={light ? "white" : "#0055DD"}/>
+                </svg>
+                <div className={`logo-font ${size === "lg" ? 'text-2xl mt-2' : 'text-lg mt-1'}`}>
+                    dpto <span className="font-light">libre</span>
+                </div>
             </div>
-            <div>
-              <div class="wallet-badge">+$12.300/mes</div>
-            </div>
-          </div>
-          <div class="wallet-actions">
-            <button class="wallet-btn">+ Blindar</button>
-            <button class="wallet-btn">Pagar alquiler</button>
-          </div>
-        </div>
+        );
 
-        <div class="section-label">Estado del contrato</div>
-        <div class="card">
-          <div class="card-row">
-            <div>
-              <div class="card-title">Alquileres · Av. Colón 1420</div>
-              <div class="card-sub">Faltan 4 días para el vencimiento</div>
-            </div>
-            <span class="badge badge-green">Al día</span>
-          </div>
-          <div class="divider"></div>
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-muted);">
-            <span>Mayo 2025</span><span style="font-family:var(--mono); font-weight:600; color:var(--text-main);">$320.000</span>
-          </div>
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" style="width:75%"></div>
-          </div>
-          <div style="font-size:11px; color:var(--text-muted); margin-top:5px;">Blindaje: 75% del mes cubierto</div>
-          <button class="pay-btn">Pagar alquiler</button>
-        </div>
+        function DptoLibreApp() {
+            const [view, setView] = useState('splash'); // splash, onboarding, passport, home
+            const [overlay, setOverlay] = useState(null);
+            
+            // --- FLUJO DE PANTALLAS ---
 
-        <div class="section-label">Próximos meses</div>
-        <div class="card">
-          <div class="month-row">
-            <div>
-              <div class="month-name">Junio 2025</div>
-              <div style="font-size:11px; color:var(--text-muted);">Blindaje activo</div>
-            </div>
-            <div style="text-align:right">
-              <div class="month-amount" style="color:var(--green);">$320.000</div>
-              <div class="month-status" style="color:var(--green);">● Cubierto</div>
-            </div>
-          </div>
-          <div class="month-row">
-            <div>
-              <div class="month-name">Julio 2025</div>
-              <div style="font-size:11px; color:var(--text-muted);">Sin fondos reservados</div>
-            </div>
-            <div style="text-align:right">
-              <div class="month-amount" style="color:var(--text-soft);">—</div>
-              <div class="month-status" style="color:var(--amber);">● Pendiente</div>
-            </div>
-          </div>
-        </div>
-      </div>
+            if (view === 'splash') return (
+                <div className="mobile-shell bg-[#0055DD] flex flex-col justify-center items-center p-10 text-center animate-in">
+                    <Logo light size="lg" />
+                    <p className="text-white/70 mt-4 text-sm font-medium">Alquilá sin fiador.<br/>Tu reputación es tu aval.</p>
+                    <div className="w-full mt-12 space-y-4">
+                        <button onClick={() => setView('onboarding')} className="w-full bg-white text-[#0055DD] py-4 rounded-xl font-bold text-sm shadow-xl">Crear mi Pasaporte</button>
+                        <button onClick={() => setView('home')} className="w-full bg-transparent border border-white/40 text-white py-4 rounded-xl font-bold text-sm">Ya tengo cuenta</button>
+                    </div>
+                </div>
+            );
 
-      <div class="bottom-nav">
-        <button class="nav-item active">
-          <div class="nav-icon-circle" style="background:var(--blue-light)">
-            <span style="font-size:16px;">🏠</span>
-          </div>
-          <span class="nav-label" style="color:var(--blue)">Inicio</span>
-        </button>
-        <button class="nav-item" onclick="showScreen('screen-admin')">
-          <div class="nav-icon-circle"><span style="font-size:16px;">📋</span></div>
-          <span class="nav-label">Gestión</span>
-        </button>
-        <button class="nav-item" onclick="showScreen('screen-wallet')">
-          <div class="nav-icon-circle"><span style="font-size:16px;">💳</span></div>
-          <span class="nav-label">Billetera</span>
-        </button>
-        <button class="nav-item">
-          <div class="nav-icon-circle"><span style="font-size:16px;">⭐</span></div>
-          <span class="nav-label">Millaje</span>
-        </button>
-      </div>
-    </div>
+            if (view === 'onboarding') return (
+                <div className="mobile-shell bg-white flex flex-col animate-in">
+                    <header className="p-6 bg-[#0055DD] text-white relative">
+                        <button onClick={() => setView('splash')} className="mb-4 bg-white/10 p-2 rounded-lg"><Icon name="arrow-left" size={18}/></button>
+                        <h2 className="text-xl font-extrabold uppercase tracking-tighter">Validación Autónoma</h2>
+                        <p className="text-white/60 text-xs mt-1">Paso 1 de 3: Identidad Infoexperto</p>
+                        <div className="absolute bottom-0 left-0 w-full h-1 bg-black/10">
+                            <div className="w-1/3 h-full bg-[#00D1FF]"></div>
+                        </div>
+                    </header>
+                    <main className="flex-1 p-8 space-y-8 overflow-y-auto no-scrollbar text-center">
+                        <div className="w-full aspect-video bg-slate-900 rounded-2xl relative overflow-hidden flex flex-col items-center justify-center border-2 border-[#0055DD]/30">
+                            <Icon name="scan-face" size={48} className="text-[#00D1FF] animate-pulse" />
+                            <div className="absolute top-4 left-4 flex gap-2">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                <span className="text-[8px] text-white font-bold uppercase tracking-widest">En vivo</span>
+                            </div>
+                            <p className="text-white/40 text-[10px] uppercase font-black mt-4">Encuadrá tu DNI</p>
+                        </div>
+                        <div className="text-left space-y-2">
+                            <h3 className="font-bold text-slate-800 uppercase tracking-tighter">¿Por qué validamos?</h3>
+                            <p className="text-xs text-slate-500 leading-relaxed">DptoLibre utiliza tecnología biométrica para asegurar que vos sos vos, eliminando la necesidad de trámites presenciales.</p>
+                        </div>
+                        <button onClick={() => setView('passport')} className="w-full bg-[#0055DD] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-200">Confirmar Identidad</button>
+                    </main>
+                </div>
+            );
 
-    <!-- SCREEN 2: SCORE -->
-    <div class="screen" id="screen-score">
-      <div class="status-bar" style="background:var(--navy)">
-        <span class="status-time" style="color:white">9:41</span>
-        <div class="status-icons"><span style="color:white">●●● WiFi ⬛</span></div>
-      </div>
-      <div class="score-screen-header">
-        <div style="font-size:13px; opacity:0.6; text-align:center; margin-bottom:4px;">Tu Rental Score</div>
-        <svg width="200" height="110" viewBox="0 0 200 110" class="score-arc-svg">
-          <path d="M20 100 A90 90 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="12" stroke-linecap="round"/>
-          <path d="M20 100 A90 90 0 0 1 180 100" fill="none" stroke="#0066FF" stroke-width="12" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="84"/>
-          <circle cx="146" cy="38" r="6" fill="white" opacity="0.9"/>
-          <text x="100" y="88" text-anchor="middle" font-size="42" font-weight="700" fill="white" font-family="DM Mono, monospace">720</text>
-        </svg>
-        <div class="score-level">Nivel Gold · Muy bueno</div>
-        <div style="display:flex; gap:6px; justify-content:center; margin-top:12px;">
-          <span style="background:rgba(255,255,255,0.15); color:rgba(255,255,255,0.85); font-size:11px; padding:4px 12px; border-radius:20px;">Siguiente: Platinum con 130 pts más</span>
-        </div>
-      </div>
+            if (view === 'passport') return (
+                <div className="mobile-shell bg-[#F0F2F6] flex flex-col animate-in overflow-y-auto no-scrollbar pb-24">
+                    <header className="p-8 bg-white border-b border-slate-100 flex justify-between items-center sticky top-0 z-20">
+                        <Logo />
+                        <div className="flex gap-2">
+                            <Icon name="bell" className="text-slate-400" />
+                            <Icon name="settings" className="text-slate-400" />
+                        </div>
+                    </header>
+                    <main className="p-6 space-y-6">
+                        <div className="text-center">
+                            <h2 className="text-2xl font-black text-[#0D1B4B] tracking-tighter uppercase">Tu Pasaporte</h2>
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Capacidad de Alquiler Confirmada</p>
+                        </div>
 
-      <div class="scroll-area" style="padding-top:14px;">
-        <div class="card">
-          <div style="font-size:13px; font-weight:600; color:var(--text-main); margin-bottom:10px;">Oportunidades para subir</div>
-          <div class="list-item">
-            <div class="list-icon" style="background:var(--green-light)">✅</div>
-            <div class="list-text">
-              <div class="list-title">Pagar antes del día 1</div>
-              <div class="list-sub">Multiplica x2 tus millas</div>
-            </div>
-            <div style="text-align:right">
-              <div style="font-size:13px; font-weight:700; color:var(--green);">+50 pts</div>
-            </div>
-          </div>
-          <div class="list-item">
-            <div class="list-icon" style="background:var(--blue-light)">🔒</div>
-            <div class="list-text">
-              <div class="list-title">Blindar 2 meses seguidos</div>
-              <div class="list-sub">Racha activa: 1 mes</div>
-            </div>
-            <div style="text-align:right">
-              <div style="font-size:13px; font-weight:700; color:var(--blue);">+30 pts</div>
-            </div>
-          </div>
-          <div class="list-item">
-            <div class="list-icon" style="background:var(--amber-light)">🏠</div>
-            <div class="list-text">
-              <div class="list-title">Cerrar ticket sin costo</div>
-              <div class="list-sub">Mantené el activo sano</div>
-            </div>
-            <div style="text-align:right">
-              <div style="font-size:13px; font-weight:700; color:var(--amber);">+20 pts</div>
-            </div>
-          </div>
-        </div>
+                        {/* PASAPORTE CARD */}
+                        <div className="passport-gradient rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden">
+                            <Icon name="shield-check" size={140} className="absolute right-[-30px] top-[-30px] opacity-10" />
+                            <div className="flex justify-between items-start mb-10">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-[#00D1FF]">Veredicto DptoLibre</p>
+                                    <h3 className="text-xl font-extrabold mt-1">Marcos Galperin</h3>
+                                </div>
+                                <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
+                                    <Icon name="qr-code" size={24} />
+                                </div>
+                            </div>
+                            <p className="text-[10px] font-bold opacity-60 uppercase tracking-widest">Habilitado para alquilar hasta</p>
+                            <h2 className="text-5xl font-black tracking-tighter">$550.000<span className="text-lg opacity-40 font-normal">/mes</span></h2>
+                            
+                            <div className="mt-8 pt-6 border-t border-white/10 grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-[8px] font-bold opacity-50 uppercase">Vigencia</p>
+                                    <p className="text-xs font-bold uppercase">30 Días</p>
+                                </div>
+                                <div>
+                                    <p className="text-[8px] font-bold opacity-50 uppercase">Garantía</p>
+                                    <p className="text-xs font-bold uppercase text-[#00D1FF]">Pre-aprobada</p>
+                                </div>
+                            </div>
+                        </div>
 
-        <div class="card">
-          <div style="font-size:13px; font-weight:600; color:var(--text-main); margin-bottom:10px;">Camino al crédito hipotecario</div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="font-size:12px; color:var(--text-muted)">Platinum requerido: 851 pts</span>
-            <span style="font-size:12px; font-weight:600; color:var(--navy)">720 / 851</span>
-          </div>
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" style="width:85%; background:linear-gradient(90deg, var(--blue), var(--navy))"></div>
-          </div>
-          <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">Te faltan solo 2 meses perfectos para calificar</div>
-        </div>
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col gap-6">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500"><Icon name="user-check"/></div>
+                                <div className="flex-1">
+                                    <h4 className="font-black text-slate-800 text-sm uppercase leading-none">Perfil Platinum</h4>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Rental Score: 890</p>
+                                </div>
+                                <Icon name="chevron-right" className="text-slate-200" />
+                            </div>
+                            <button className="w-full bg-[#0D1B4B] text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2">
+                                <Icon name="share-2" size={14} /> Compartir Pasaporte
+                            </button>
+                        </div>
 
-        <button class="pay-btn secondary" style="margin:0 0 12px;" onclick="showScreen('screen-inicio')">← Volver al inicio</button>
-      </div>
-    </div>
+                        <div className="bg-[#EEF3FF] p-6 rounded-[2rem] border border-[#0055DD]/10 flex gap-4">
+                            <Icon name="info" className="text-[#0055DD] shrink-0" />
+                            <p className="text-[10px] text-[#0055DD] font-bold leading-relaxed">
+                                Este pasaporte te permite reservar propiedades sin presentar papeles físicos. Tu solvencia ya fue validada.
+                            </p>
+                        </div>
+                    </main>
 
-    <!-- SCREEN 3: WALLET -->
-    <div class="screen" id="screen-wallet">
-      <div class="status-bar">
-        <span class="status-time">9:41</span>
-        <div class="status-icons"><span>●●● WiFi ⬛</span></div>
-      </div>
-      <div class="header-back">
-        <button class="back-btn" onclick="showScreen('screen-inicio')">←</button>
-        <span class="header-title">Mi billetera</span>
-      </div>
+                    {/* Nav */}
+                    <nav className="absolute bottom-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-100 flex justify-around p-6 pb-10">
+                        <button onClick={() => setView('home')} className="text-slate-300"><Icon name="home" /></button>
+                        <button onClick={() => setView('passport')} className="text-[#0055DD]"><Icon name="user-circle" strokeWidth={3} /></button>
+                        <button className="text-slate-300"><Icon name="search" /></button>
+                        <button className="text-slate-300"><Icon name="wallet" /></button>
+                    </nav>
+                </div>
+            );
 
-      <div class="scroll-area" style="padding-top:14px;">
-        <div class="wallet-card">
-          <div class="wallet-label">Saldo blindado</div>
-          <div class="wallet-amount">$245.000</div>
-          <div style="font-size:12px; opacity:0.5; margin-top:2px;">Banco Galicia ···4521</div>
-          <div style="background:rgba(29,158,117,0.2); border-radius:10px; padding:8px 12px; margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:12px; color:#5DCAA5;">Rendimiento hoy</span>
-            <span style="font-size:16px; font-weight:700; color:#5DCAA5; font-family:var(--mono);" id="counter">+$1.209,44</span>
-          </div>
-        </div>
+            if (view === 'home') return (
+                <div className="mobile-shell bg-[#F0F2F6] flex flex-col animate-in overflow-y-auto no-scrollbar pb-32">
+                    <header className="p-8 bg-white border-b border-slate-100 flex justify-between items-center sticky top-0 z-20">
+                        <Logo />
+                        <Icon name="bell" className="text-slate-400" />
+                    </header>
+                    <main className="p-6 space-y-6">
+                        {/* Status Alquiler */}
+                        <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden">
+                            <Icon name="clock" size={120} className="absolute right-[-20px] bottom-[-20px] opacity-5 text-[#00D1FF]" />
+                            <span className="text-[10px] font-black bg-[#00D1FF] text-[#0D1B4B] px-3 py-1 rounded-full uppercase tracking-widest">En proceso de mudanza</span>
+                            <h3 className="text-2xl font-black mt-6 leading-tight">Caseros 1230, 4B</h3>
+                            <p className="text-xs text-slate-400 mt-2">Inmobiliaria: Raíces Propiedades</p>
+                            
+                            <div className="mt-8 flex items-center justify-between">
+                                <div>
+                                    <p className="text-[8px] font-black opacity-50 uppercase tracking-widest">Primer Pago</p>
+                                    <p className="text-lg font-black">$450.000</p>
+                                </div>
+                                <button className="bg-white text-slate-900 px-6 py-3 rounded-xl font-black text-[10px] uppercase">Pagar y Firmar</button>
+                            </div>
+                        </div>
 
-        <div class="action-grid">
-          <button class="action-btn">
-            <div class="action-icon">🔒</div>
-            <div class="action-label">Blindar fondos</div>
-            <div class="action-sub">Resguardar meses</div>
-          </button>
-          <button class="action-btn">
-            <div class="action-icon">💸</div>
-            <div class="action-label">Pagar alquiler</div>
-            <div class="action-sub">Desde saldo o banco</div>
-          </button>
-          <button class="action-btn">
-            <div class="action-icon">⚡</div>
-            <div class="action-label">Pagar servicio</div>
-            <div class="action-sub">Luz, gas, agua</div>
-          </button>
-          <button class="action-btn">
-            <div class="action-icon">↩</div>
-            <div class="action-label">Retirar saldo</div>
-            <div class="action-sub">Al CBU de origen</div>
-          </button>
-        </div>
+                        {/* Rampa a Casa Propia */}
+                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden">
+                            <Icon name="trending-up" className="absolute right-4 top-4 text-emerald-500" />
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Camino a tu Casa Propia</p>
+                            <div className="flex justify-between text-[10px] font-black uppercase mb-2">
+                                <span className="text-emerald-600">Nivel Platinum</span>
+                                <span className="text-slate-300">Meta: 1000 pts</span>
+                            </div>
+                            <div className="h-4 bg-slate-50 rounded-full overflow-hidden mb-6 border border-slate-100 p-1">
+                                <div className="h-full bg-gradient-to-r from-[#0055DD] to-emerald-400 rounded-full" style={{ width: '82%' }}></div>
+                            </div>
+                            <p className="text-xs text-slate-500 font-medium italic">"Estás a 2 pagos blindados de calificar para tu primer crédito hipotecario."</p>
+                        </div>
+                    </main>
 
-        <div class="section-label">Últimos movimientos</div>
-        <div class="card">
-          <div class="list-item">
-            <div class="list-icon" style="background:var(--green-light)">✅</div>
-            <div class="list-text">
-              <div class="list-title">Alquiler Abril pagado</div>
-              <div class="list-sub">Desde Saldo Blindado · 01 Abr</div>
-            </div>
-            <div style="text-align:right">
-              <div class="list-right" style="color:var(--red);">-$290.000</div>
-              <div class="list-right-sub">Comprobante ARCA</div>
-            </div>
-          </div>
-          <div class="list-item">
-            <div class="list-icon" style="background:var(--blue-light)">🔒</div>
-            <div class="list-text">
-              <div class="list-title">Blindaje Mayo</div>
-              <div class="list-sub">Desde Galicia · 28 Mar</div>
-            </div>
-            <div style="text-align:right">
-              <div class="list-right" style="color:var(--green);">+$320.000</div>
-              <div class="list-right-sub">+210 millas</div>
-            </div>
-          </div>
-          <div class="list-item">
-            <div class="list-icon" style="background:var(--amber-light)">⚡</div>
-            <div class="list-text">
-              <div class="list-title">Edesur · Servicio Abril</div>
-              <div class="list-sub">Desde Cuenta Asociada · 20 Mar</div>
-            </div>
-            <div style="text-align:right">
-              <div class="list-right" style="color:var(--red);">-$8.400</div>
-              <div class="list-right-sub">+15 millas</div>
-            </div>
-          </div>
-        </div>
-      </div>
+                    {/* Nav */}
+                    <nav className="absolute bottom-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-100 flex justify-around p-6 pb-10">
+                        <button onClick={() => setView('home')} className="text-[#0055DD]"><Icon name="home" strokeWidth={3} /></button>
+                        <button onClick={() => setView('passport')} className="text-slate-300"><Icon name="user-circle" /></button>
+                        <button className="text-slate-300"><Icon name="search" /></button>
+                        <button className="text-slate-300"><Icon name="wallet" /></button>
+                    </nav>
+                </div>
+            );
 
-      <div class="bottom-nav">
-        <button class="nav-item" onclick="showScreen('screen-inicio')">
-          <div class="nav-icon-circle"><span style="font-size:16px;">🏠</span></div>
-          <span class="nav-label">Inicio</span>
-        </button>
-        <button class="nav-item" onclick="showScreen('screen-admin')">
-          <div class="nav-icon-circle"><span style="font-size:16px;">📋</span></div>
-          <span class="nav-label">Gestión</span>
-        </button>
-        <button class="nav-item active">
-          <div class="nav-icon-circle" style="background:var(--blue-light)"><span style="font-size:16px;">💳</span></div>
-          <span class="nav-label" style="color:var(--blue)">Billetera</span>
-        </button>
-        <button class="nav-item">
-          <div class="nav-icon-circle"><span style="font-size:16px;">⭐</span></div>
-          <span class="nav-label">Millaje</span>
-        </button>
-      </div>
-    </div>
+            return null;
+        }
 
-    <!-- SCREEN 4: ADMIN / GESTIÓN -->
-    <div class="screen" id="screen-admin">
-      <div class="status-bar">
-        <span class="status-time">9:41</span>
-        <div class="status-icons"><span>●●● WiFi ⬛</span></div>
-      </div>
-      <div class="header-back">
-        <button class="back-btn" onclick="showScreen('screen-inicio')">←</button>
-        <span class="header-title">Mi contrato</span>
-        <span class="badge badge-green" style="margin-left:auto">Activo</span>
-      </div>
-
-      <div class="scroll-area" style="padding-top:14px;">
-        <div class="card">
-          <div class="card-row">
-            <div>
-              <div class="card-title">Av. Colón 1420, 3°B</div>
-              <div class="card-sub">Córdoba Capital · Dto 2 ambientes</div>
-            </div>
-          </div>
-          <div class="divider"></div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px;">
-            <div><span style="color:var(--text-muted)">Alquiler</span><br/><strong style="font-family:var(--mono)">$320.000</strong></div>
-            <div><span style="color:var(--text-muted)">Vencimiento</span><br/><strong>Día 5 de cada mes</strong></div>
-            <div><span style="color:var(--text-muted)">Inicio contrato</span><br/><strong>01/05/2024</strong></div>
-            <div><span style="color:var(--text-muted)">Fin contrato</span><br/><strong>01/05/2026</strong></div>
-          </div>
-          <div class="divider"></div>
-          <div style="display:flex; gap:8px; font-size:12px;">
-            <div style="flex:1; background:var(--blue-light); border-radius:10px; padding:8px; text-align:center; color:var(--navy);">
-              <div style="font-weight:600;">Inmobiliaria</div>
-              <div style="font-size:11px; margin-top:2px; opacity:0.8;">Raúl Gómez Propiedades</div>
-            </div>
-            <button style="background:var(--green-light); border-radius:10px; padding:8px 14px; font-size:12px; color:var(--green); font-weight:600; border:none; cursor:pointer;">WhatsApp</button>
-          </div>
-        </div>
-
-        <div class="section-label">Tickets de mantenimiento</div>
-        <div class="card">
-          <div class="ticket-row">
-            <span class="ticket-status open"></span>
-            <div style="flex:1">
-              <div class="list-title">Pérdida en canilla cocina</div>
-              <div class="list-sub">Presupuestado · Esperando autorización</div>
-            </div>
-            <span class="badge badge-amber">En trámite</span>
-          </div>
-          <div class="ticket-row">
-            <span class="ticket-status closed"></span>
-            <div style="flex:1">
-              <div class="list-title">Cerradura puerta principal</div>
-              <div class="list-sub">Cerrado · +10 pts ganados</div>
-            </div>
-            <span class="badge badge-green">Cerrado</span>
-          </div>
-          <button class="pay-btn secondary" style="margin-top:10px;">+ Nuevo reporte</button>
-        </div>
-
-        <div class="section-label">Documentos</div>
-        <div class="card">
-          <div class="list-item">
-            <div class="list-icon" style="background:var(--blue-light)">📄</div>
-            <div class="list-text">
-              <div class="list-title">Contrato de alquiler</div>
-              <div class="list-sub">Firmado digitalmente vía Infoexperto</div>
-            </div>
-            <span style="font-size:12px; color:var(--blue); font-weight:600;">Ver PDF</span>
-          </div>
-          <div class="list-item">
-            <div class="list-icon" style="background:var(--green-light)">🧾</div>
-            <div class="list-text">
-              <div class="list-title">Recibos de alquiler</div>
-              <div class="list-sub">24 comprobantes emitidos</div>
-            </div>
-            <span style="font-size:12px; color:var(--blue); font-weight:600;">Ver todos</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="bottom-nav">
-        <button class="nav-item" onclick="showScreen('screen-inicio')">
-          <div class="nav-icon-circle"><span style="font-size:16px;">🏠</span></div>
-          <span class="nav-label">Inicio</span>
-        </button>
-        <button class="nav-item active">
-          <div class="nav-icon-circle" style="background:var(--blue-light)"><span style="font-size:16px;">📋</span></div>
-          <span class="nav-label" style="color:var(--blue)">Gestión</span>
-        </button>
-        <button class="nav-item" onclick="showScreen('screen-wallet')">
-          <div class="nav-icon-circle"><span style="font-size:16px;">💳</span></div>
-          <span class="nav-label">Billetera</span>
-        </button>
-        <button class="nav-item">
-          <div class="nav-icon-circle"><span style="font-size:16px;">⭐</span></div>
-          <span class="nav-label">Millaje</span>
-        </button>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<script>
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-let base = 1209.44;
-let counter = document.getElementById('counter');
-if (counter) {
-  setInterval(() => {
-    base += (Math.random() * 0.08);
-    counter.textContent = '+$' + base.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
-  }, 1200);
-}
-</script>
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<DptoLibreApp />);
+    </script>
+</body>
+</html>
