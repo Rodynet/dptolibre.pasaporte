@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DptoLibre - Pasaporte Digital</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        :root { --brand-blue: #0055DD; --brand-dark: #0D1B4B; --brand-cyan: #00D1FF; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #E8EAF0; -webkit-tap-highlight-color: transparent; overflow: hidden; }
+        .mobile-shell { width: 100%; height: 100vh; max-width: 414px; margin: 0 auto; background: #F0F2F6; position: relative; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.2); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .animate-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .passport-gradient { background: linear-gradient(135deg, #0D1B4B 0%, #0055DD 100%); }
+        .face-guide { width: 220px; height: 220px; border: 4px solid var(--brand-cyan); border-radius: 50%; position: relative; box-shadow: 0 0 0 1000px rgba(0,0,0,0.7); }
+        .logo-font { letter-spacing: -0.05em; font-weight: 800; }
+        .blur-locked { filter: grayscale(1) opacity(0.4); pointer-events: none; }
+        .btn-google { background: #FFFFFF; color: #1f2937; border: 1px solid #e5e7eb; }
+        .btn-apple { background: #000000; color: #FFFFFF; }
+        .option-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .option-card.selected { border-color: var(--brand-blue); background-color: #f0f7ff; transform: scale(1.02); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const Icon = ({ name, size = 24, className = "" }) => {
+            useEffect(() => { window.lucide && window.lucide.createIcons(); }, [name, size, className]);
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
+
+        const Logo = ({ light = false, size = "md" }) => (
+            <div className={`flex flex-col items-center ${light ? 'text-white' : 'text-[#0D1B4B]'}`}>
+                <svg width={size === "lg" ? "56" : "32"} viewBox="0 0 32 40" fill="none">
+                    <path d="M16 0L32 6.4V33.6L16 40V6.4L16 0Z" fill={light ? "white" : "#0055DD"} fillOpacity="0.3"/>
+                    <path d="M0 6.4L16 0V33.6L0 40V6.4Z" fill={light ? "white" : "#0055DD"}/>
+                </svg>
+                <div className={`logo-font ${size === "lg" ? 'text-2xl mt-2' : 'text-lg mt-1'}`}>
+                    dpto <span className="font-light">libre</span>
+                </div>
+            </div>
+        );
+
+        function DptoLibreApp() {
+            // VIEWS: login, role_selection, passport_invite, val_dni_f, val_dni_d, val_face, val_income, val_guarantee, val_surety_offers, home
+            const [view, setView] = useState('login'); 
+            const [valStep, setValStep] = useState(1);
+            const [isScanning, setIsScanning] = useState(false);
+            const [rentIntent, setRentIntent] = useState(450000);
+            const [hasSuretyBond, setHasSuretyBond] = useState(false);
+
+            const handleScanAction = (nextView) => {
+                setIsScanning(true);
+                setTimeout(() => {
+                    setIsScanning(false);
+                    setView(nextView);
+                }, 1500);
+            };
+
+            // --- VISTAS DE ONBOARDING ---
+
+            const LoginView = () => (
+                <div className="mobile-shell bg-white flex flex-col p-10 justify-center animate-in">
+                    <div className="mb-12 text-center">
+                        <Logo size="lg" />
+                        <h1 className="text-2xl font-black mt-8 text-[#0D1B4B] uppercase tracking-tighter leading-none">Bienvenido</h1>
+                        <p className="text-slate-400 text-sm mt-3 font-medium px-4">El primer pasaporte digital para alquilar con libertad.</p>
+                    </div>
+                    <div className="space-y-3 w-full">
+                        <button onClick={() => setView('role_selection')} className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-bold btn-google shadow-sm active:scale-95 transition-all">
+                            <Icon name="chrome" size={20} className="text-blue-500"/> Continuar con Google
+                        </button>
+                        <button onClick={() => setView('role_selection')} className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-bold btn-apple shadow-lg active:scale-95 transition-all"><Icon name="apple" size={20} className="fill-white"/> Continuar con Apple</button>
+                        <div className="flex items-center gap-4 py-4"><div className="h-[1px] flex-1 bg-slate-100"></div><span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">o con email</span><div className="h-[1px] flex-1 bg-slate-100"></div></div>
+                        <input type="email" placeholder="Email" className="w-full bg-slate-50 border-none p-5 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#0055DD] outline-none" />
+                        <button onClick={() => setView('role_selection')} className="w-full bg-[#0D1B4B] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl mt-4">Ingresar</button>
+                    </div>
+                </div>
+            );
+
+            const RoleView = () => (
+                <div className="mobile-shell bg-white flex flex-col p-10 animate-in">
+                    <header className="mb-12 pt-10 text-center">
+                        <h2 className="text-3xl font-black text-[#0D1B4B] tracking-tighter leading-none tracking-tight">¿Cómo vas a usar DptoLibre?</h2>
+                        <p className="text-slate-400 text-sm mt-4 font-medium px-4">Elegí tu perfil para comenzar.</p>
+                    </header>
+                    <div className="space-y-4 flex-1">
+                        {['Inquilino', 'Propietario', 'Administrador'].map((role, i) => (
+                            <button key={role} onClick={() => setView('passport_invite')} className="w-full p-6 border-2 border-slate-50 rounded-[2.5rem] text-left flex items-center gap-5 hover:border-[#0055DD] hover:bg-blue-50/30 transition-all group">
+                                <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-[#0055DD] group-hover:text-white transition-all"><Icon name={i === 0 ? 'user' : i === 1 ? 'shield' : 'building'} /></div>
+                                <div className="flex-1 font-black text-[#0D1B4B] uppercase text-sm tracking-tight">{role}</div>
+                                <Icon name="chevron-right" className="text-slate-200 group-hover:text-[#0055DD]" />
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const PassportInvite = () => (
+                <div className="mobile-shell passport-gradient flex flex-col justify-center items-center p-12 text-center text-white animate-in">
+                    <Logo light size="lg" />
+                    <h2 className="text-3xl font-black mt-12 uppercase tracking-tighter leading-none">Obtené tu Pasaporte</h2>
+                    <p className="text-white/60 text-sm mt-6 leading-relaxed px-4">Validamos tu solvencia para que las inmobiliarias te elijan primero.</p>
+                    <button onClick={() => setView('val_dni_f')} className="w-full bg-[#00D1FF] text-[#0D1B4B] py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl mt-12">Empezar Validación</button>
+                </div>
+            );
+
+            const DniCapture = ({ side, next }) => (
+                <div className="mobile-shell bg-white flex flex-col animate-in">
+                    <header className="p-8 pb-4 flex justify-between items-center"><div><h2 className="text-2xl font-black text-[#0D1B4B] uppercase tracking-tighter">DNI {side}</h2><p className="text-slate-400 text-xs font-bold uppercase mt-1">Legajo de Identidad</p></div></header>
+                    <main className="flex-1 p-8 flex flex-col justify-center text-center">
+                        <div className="w-full aspect-[3/2] bg-slate-900 rounded-[2rem] border-4 border-[#0055DD]/10 relative flex flex-col items-center justify-center overflow-hidden shadow-2xl">
+                             <div className="w-full h-1 bg-[#00D1FF]/40 absolute top-1/2 shadow-[0_0_20px_#00D1FF]"></div>
+                             <Icon name="camera" className="text-white opacity-20" size={48} />
+                             <p className="absolute bottom-4 text-[8px] font-black text-white/40 uppercase tracking-widest">Encuadre el {side}</p>
+                        </div>
+                        <button onClick={() => handleScanAction(next)} className="mt-auto w-full bg-[#0D1B4B] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">Capturar Foto</button>
+                    </main>
+                    {isScanning && <LoadingOverlay />}
+                </div>
+            );
+
+            const FaceCapture = () => (
+                <div className="mobile-shell bg-slate-900 flex flex-col items-center justify-center text-white animate-in">
+                    <div className="face-guide flex items-center justify-center"><Icon name="user" size={100} className="text-white/20" /></div>
+                    <div className="mt-12 text-center px-10"><h4 className="text-xl font-black uppercase tracking-widest mb-2">Prueba de Vida</h4><p className="text-white/50 text-sm leading-relaxed">Parpadeá tres veces frente a la cámara.</p></div>
+                    <button onClick={() => handleScanAction('val_income')} className="mt-16 bg-[#00D1FF] text-[#0D1B4B] px-12 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl">Iniciar Escaneo</button>
+                </div>
+            );
+
+            const IncomeCapture = () => (
+                <div className="mobile-shell bg-white flex flex-col p-8 animate-in">
+                    <header className="mb-10 flex justify-between items-end">
+                        <div><h2 className="text-2xl font-black text-[#0D1B4B] uppercase tracking-tighter leading-none">Tus Ingresos</h2><p className="text-slate-400 text-xs font-bold uppercase mt-2 tracking-widest">Validación OCR</p></div>
+                        <Icon name="file-text" className="text-slate-200" size={40} />
+                    </header>
+                    <div className="space-y-4 flex-1">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="p-5 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-between group hover:border-[#0055DD] transition-all">
+                                <span className="text-[10px] font-black text-slate-400 uppercase">Recibo Mes {i}</span>
+                                <button className="bg-slate-50 p-2 rounded-lg text-slate-400"><Icon name="plus" size={16} /></button>
+                            </div>
+                        ))}
+                        <p className="text-[10px] text-slate-400 font-bold italic text-center px-6 mt-4">La IA analizará tus ingresos netos para calcular tu capacidad de alquiler.</p>
+                    </div>
+                    <button onClick={() => setView('val_guarantee')} className="w-full bg-[#0055DD] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">Siguiente</button>
+                </div>
+            );
+
+            // --- NUEVO: SELECCIÓN DE GARANTÍA ---
+
+            const GuaranteeView = () => (
+                <div className="mobile-shell bg-white flex flex-col p-8 animate-in overflow-y-auto no-scrollbar">
+                    <header className="mb-8">
+                        <h2 className="text-2xl font-black text-[#0D1B4B] uppercase tracking-tighter leading-none">¿Cómo vas a garantizar?</h2>
+                        <p className="text-slate-400 text-sm mt-2 font-medium">Elige el respaldo para tu contrato.</p>
+                    </header>
+                    
+                    <div className="space-y-4 flex-1">
+                        {/* Opción Caución (Recomendada) */}
+                        <div 
+                            onClick={() => setView('val_surety_offers')} 
+                            className="option-card p-6 border-2 border-indigo-100 rounded-[2.5rem] bg-indigo-50/50 cursor-pointer hover:border-[#0055DD] group"
+                        >
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                                    <Icon name="zap" size={24} />
+                                </div>
+                                <span className="bg-emerald-100 text-emerald-700 text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-tighter">Recomendado</span>
+                            </div>
+                            <h4 className="font-black text-[#0D1B4B] uppercase text-sm">Garantía Digital DptoLibre</h4>
+                            <p className="text-xs text-slate-500 mt-2 leading-relaxed">Aprobación instantánea en 2 pasos. Sin pedir favores a familiares ni burocracia de escrituras.</p>
+                            <div className="mt-4 flex items-center gap-2 text-[#0055DD] font-black text-[10px] uppercase">
+                                <span>Ver proveedores</span> <Icon name="arrow-right" size={12} />
+                            </div>
+                        </div>
+
+                        {/* Opción Tradicional */}
+                        <div 
+                            onClick={() => setView('home')} 
+                            className="option-card p-6 border-2 border-slate-100 rounded-[2.5rem] bg-white cursor-pointer hover:border-slate-300"
+                        >
+                            <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mb-4">
+                                <Icon name="file-text" size={24} />
+                            </div>
+                            <h4 className="font-black text-slate-400 uppercase text-sm">Cargar Garantía Tradicional</h4>
+                            <p className="text-[10px] text-slate-400 mt-2">Carga escrituras de terceros o seguros externos. (Sujeto a auditoría manual del gestor).</p>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const SuretyOffersView = () => (
+                <div className="mobile-shell bg-white flex flex-col p-8 animate-in overflow-y-auto no-scrollbar">
+                    <header className="mb-6">
+                        <button onClick={() => setView('val_guarantee')} className="text-slate-300 mb-4"><Icon name="arrow-left" size={20}/></button>
+                        <h2 className="text-2xl font-black text-[#0D1B4B] uppercase tracking-tighter leading-none">Mejorá tu Pasaporte</h2>
+                        <p className="text-slate-400 text-xs font-bold mt-2 uppercase tracking-widest">Cotización en tiempo real</p>
+                    </header>
+
+                    <div className="space-y-6">
+                        <div className="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl relative overflow-hidden">
+                            <Icon name="calculator" size={80} className="absolute right-[-10px] bottom-[-10px] opacity-10" />
+                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Alquiler que buscas</p>
+                            <div className="flex items-center gap-1">
+                                <span className="text-2xl font-black">$</span>
+                                <input 
+                                    type="number" 
+                                    value={rentIntent} 
+                                    onChange={(e) => setRentIntent(e.target.value)}
+                                    className="bg-transparent text-4xl font-black text-white w-full outline-none border-b border-white/20 focus:border-[#00D1FF] pb-1"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Opciones de Caución</h4>
+                            
+                            {[
+                                { provider: "Blindato Insurance", price: "450.000", badge: "Más elegida", icon: "shield-check" },
+                                { provider: "Garantía YA", price: "472.000", badge: "Firma en 1h", icon: "zap" }
+                            ].map((offer, i) => (
+                                <div key={i} className="p-5 border-2 border-slate-50 rounded-[2rem] bg-white flex justify-between items-center shadow-sm">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center"><Icon name={offer.icon} size={20}/></div>
+                                        <div>
+                                            <p className="text-xs font-black text-slate-800 uppercase leading-none">{offer.provider}</p>
+                                            <p className="text-[9px] text-emerald-500 font-black mt-1 uppercase tracking-tighter">{offer.badge}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm font-black text-slate-700">${offer.price}</p>
+                                        <button 
+                                            onClick={() => { setHasSuretyBond(true); setView('home'); }}
+                                            className="text-[8px] font-black text-indigo-600 uppercase border-b-2 border-indigo-100 hover:border-indigo-600 transition-all"
+                                        >
+                                            Pre-comprar
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="bg-amber-50 p-5 rounded-3xl border border-amber-100 flex gap-3 mt-4">
+                            <Icon name="info" className="text-amber-600 shrink-0" size={18} />
+                            <p className="text-[10px] text-amber-700 font-bold leading-relaxed italic">
+                                Al contratar una caución, tu pasaporte se marca como **Aprobación Instantánea**. Te ahorras miles de problemas y demoras con garantes propietarios.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // --- HOME VIEW: EL PASAPORTE FINAL ---
+
+            const HomeView = () => (
+                <div className="mobile-shell bg-[#F0F2F6] flex flex-col animate-in overflow-y-auto no-scrollbar pb-32">
+                    <header className="p-8 bg-white border-b flex justify-between items-center sticky top-0 z-20">
+                        <Logo />
+                        <div className="flex items-center gap-3">
+                             <div className="w-10 h-10 rounded-full border-2 border-indigo-600 bg-slate-100 overflow-hidden shadow-sm">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Marcos" alt="Avatar" />
+                             </div>
+                        </div>
+                    </header>
+
+                    <main className="p-6 space-y-6">
+                        {/* Pasaporte con Sello de Garantía */}
+                        <div className="passport-gradient p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden flex flex-col gap-6">
+                            <Icon name="shield-check" size={150} className={`absolute right-[-40px] top-[-40px] opacity-10 ${hasSuretyBond ? 'text-emerald-400 opacity-20' : ''}`} />
+                            <div>
+                                <p className="text-[10px] font-black uppercase text-[#00D1FF] tracking-widest">Poder de Alquiler Validado</p>
+                                <h2 className="text-4xl font-black tracking-tighter mt-1 leading-none">$550.000</h2>
+                                <p className="text-[10px] font-bold opacity-60 uppercase mt-2">Capacidad Mensual Auditada</p>
+                            </div>
+
+                            {hasSuretyBond && (
+                                <div className="bg-emerald-500/20 border border-emerald-400/30 p-3 rounded-2xl flex items-center gap-3">
+                                    <Icon name="check-circle" size={18} className="text-emerald-400" />
+                                    <div className="flex-1">
+                                        <p className="text-[8px] font-black text-white uppercase tracking-widest">Garantía Digital Pre-aprobada</p>
+                                        <p className="text-[10px] font-bold text-emerald-100">Estado: Listo para Firmar</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex flex-col gap-3">
+                                <button className="w-full bg-white/10 hover:bg-white/20 transition-all p-4 rounded-2xl backdrop-blur-md border border-white/10 flex items-center justify-center gap-3 font-black text-xs uppercase tracking-widest">
+                                    <Icon name="share-2" size={16} className="text-[#00D1FF]" /> Compartir Pasaporte
+                                </button>
+                                <div className="flex items-center justify-between bg-white p-5 rounded-3xl shadow-lg text-[#0D1B4B]">
+                                    <div className="flex flex-col">
+                                        <span className="text-[8px] font-black uppercase text-slate-400">ID Digital</span>
+                                        <span className="text-[10px] font-black uppercase tracking-tighter mt-1">DptoLibre-V54</span>
+                                    </div>
+                                    <Icon name="qr-code" size={32} />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Misión de Mejora (Si no compró garantía) */}
+                        {!hasSuretyBond && (
+                            <div className="bg-indigo-50 border-2 border-indigo-100 p-6 rounded-[2.5rem] flex flex-col gap-4 text-center">
+                                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm text-indigo-600"><Icon name="sparkles" size={24}/></div>
+                                <div>
+                                    <h4 className="font-black text-indigo-900 uppercase text-xs">Potencia tu perfil</h4>
+                                    <p className="text-[10px] text-indigo-700 mt-1">Suma una Garantía Digital para alquilar sin demoras ni favores.</p>
+                                </div>
+                                <button onClick={() => setView('val_surety_offers')} className="bg-[#0055DD] text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest">Ver Cauciones</button>
+                            </div>
+                        )}
+
+                        {/* Rampa Hipotecaria */}
+                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden">
+                             <Icon name="trending-up" className="absolute right-4 top-4 text-emerald-500" />
+                             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Meta Casa Propia</h4>
+                             <div className="h-3 bg-slate-50 rounded-full overflow-hidden mb-4 border p-0.5"><div className="h-full bg-gradient-to-r from-[#0055DD] to-emerald-400 rounded-full shadow-[0_0_10px_rgba(0,85,221,0.3)]" style={{ width: '15%' }}></div></div>
+                             <p className="text-[9px] text-slate-500 font-bold italic leading-relaxed text-center px-4">Tu legajo está validado. Presentá tu pasaporte para sumar antigüedad crediticia.</p>
+                        </div>
+                    </main>
+
+                    <nav className="absolute bottom-0 w-full bg-white/90 backdrop-blur-md border-t p-6 pb-10 flex justify-around">
+                        <Icon name="home" className="text-[#0055DD]" strokeWidth={3}/>
+                        <Icon name="search" className="text-slate-300" />
+                        <Icon name="wallet" className="text-slate-300" />
+                        <Icon name="user" className="text-slate-300" />
+                    </nav>
+                </div>
+            );
+
+            // --- UTILS ---
+            const LoadingOverlay = () => (
+                <div className="absolute inset-0 bg-white/90 backdrop-blur-md z-[200] flex flex-col items-center justify-center animate-in">
+                    <div className="w-16 h-16 border-4 border-[#0055DD] border-t-transparent rounded-full animate-spin mb-4 shadow-[0_0_15px_rgba(0,85,221,0.2)]"></div>
+                    <p className="text-xs font-black text-[#0055DD] uppercase tracking-widest">Analizando con IA...</p>
+                </div>
+            );
+
+            return (
+                <div className="h-screen w-full flex flex-col items-center justify-center p-4">
+                    <div className="mobile-shell">
+                        {/* Notch */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-[#0D1B4B] rounded-b-3xl z-[150] flex items-center justify-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+                            <div className="w-10 h-1 bg-white/20 rounded-full"></div>
+                        </div>
+
+                        {view === 'login' && <LoginView />}
+                        {view === 'role_selection' && <RoleView />}
+                        {view === 'passport_invite' && <PassportInvite />}
+                        {view === 'val_dni_f' && <DniCapture side="Frente" next="val_dni_d" stepNum={1} />}
+                        {view === 'val_dni_d' && <DniCapture side="Dorso" next="val_face" stepNum={2} />}
+                        {view === 'val_face' && <FaceCapture />}
+                        {view === 'val_income' && <IncomeCapture />}
+                        {view === 'val_guarantee' && <GuaranteeView />}
+                        {view === 'val_surety_offers' && <SuretyOffersView />}
+                        {view === 'home' && <HomeView />}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<DptoLibreApp />);
+    </script>
+</body>
+</html>
