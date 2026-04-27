@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DptoLibre - Pasaporte Digital</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        :root { --brand-blue: #0055DD; --brand-dark: #0D1B4B; --brand-cyan: #00D1FF; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #E8EAF0; -webkit-tap-highlight-color: transparent; overflow: hidden; }
+        .mobile-shell { width: 100%; height: 100vh; max-width: 414px; margin: 0 auto; background: #F0F2F6; position: relative; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.2); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .animate-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .passport-gradient { background: linear-gradient(135deg, #0D1B4B 0%, #0055DD 100%); }
+        .logo-font { letter-spacing: -0.05em; font-weight: 800; }
+        .face-guide { width: 220px; height: 220px; border: 4px solid var(--brand-cyan); border-radius: 50%; position: relative; box-shadow: 0 0 0 1000px rgba(0,0,0,0.7); }
+        /* Estilos específicos para la tarjeta de la imagen */
+        .third-party-bg { background-color: #f0f4ff; }
+        .btn-share { background-color: #0D1B4B; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const Icon = ({ name, size = 24, className = "" }) => {
+            useEffect(() => { window.lucide && window.lucide.createIcons(); }, [name, size, className]);
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
+
+        const Logo = ({ light = false, size = "md" }) => (
+            <div className={`flex flex-col items-center ${light ? 'text-white' : 'text-[#0D1B4B]'}`}>
+                <svg width={size === "lg" ? "56" : "32"} viewBox="0 0 32 40" fill="none">
+                    <path d="M16 0L32 6.4V33.6L16 40V6.4L16 0Z" fill={light ? "white" : "#0055DD"} fillOpacity="0.3"/>
+                    <path d="M0 6.4L16 0V33.6L0 40V6.4Z" fill={light ? "white" : "#0055DD"}/>
+                </svg>
+                <div className={`logo-font ${size === "lg" ? 'text-2xl mt-2' : 'text-lg mt-1'}`}>
+                    dpto <span className="font-light">libre</span>
+                </div>
+            </div>
+        );
+
+        function DptoLibreApp() {
+            const [view, setView] = useState('login'); 
+            const [isScanning, setIsScanning] = useState(false);
+            const [isFirstRental, setIsFirstRental] = useState(false);
+            
+            const [rentIntent, setRentIntent] = useState(450000); 
+            const [incomeTotal, setIncomeTotal] = useState(0); 
+            const [hasSuretyBond, setHasSuretyBond] = useState(false);
+
+            const handleScanAction = (nextView, delay = 1500) => {
+                setIsScanning(true);
+                setTimeout(() => {
+                    setIsScanning(false);
+                    setView(nextView);
+                }, delay);
+            };
+
+            const capacity = incomeTotal * 0.3;
+            const needsSurety = rentIntent > capacity;
+
+            // --- VISTAS ---
+
+            const LoginView = () => (
+                <div className="mobile-shell bg-white flex flex-col p-10 justify-center animate-in">
+                    <div className="mb-12 text-center">
+                        <Logo size="lg" />
+                        <h1 className="text-2xl font-black mt-8 text-[#0D1B4B] uppercase tracking-tighter leading-none">Tu Pasaporte Digital</h1>
+                        <p className="text-slate-400 text-sm mt-3 font-medium">Validá tu perfil y alquilá en un clic.</p>
+                    </div>
+                    <div className="space-y-4 w-full">
+                        <button onClick={() => setView('role_selection')} className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-bold bg-white border border-slate-200 text-slate-700 shadow-sm active:scale-95 transition-all">
+                            <Icon name="chrome" size={20} className="text-blue-500" /> Continuar con Google
+                        </button>
+                        <button onClick={() => setView('role_selection')} className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-bold bg-black text-white shadow-lg active:scale-95 transition-all">
+                            <Icon name="apple" size={20} className="fill-white"/> Continuar con Apple
+                        </button>
+                        <div className="py-4 text-center text-[10px] font-black text-slate-300 uppercase tracking-widest">o con tu email</div>
+                        <input type="email" placeholder="Email" className="w-full bg-slate-50 border-none p-5 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#0055DD] outline-none" />
+                        <button onClick={() => setView('role_selection')} className="w-full bg-[#0D1B4B] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl mt-4">Ingresar</button>
+                    </div>
+                </div>
+            );
+
+            const RoleView = () => (
+                <div className="mobile-shell bg-white flex flex-col p-10 animate-in">
+                    <header className="mb-12 pt-10 text-center">
+                        <h2 className="text-3xl font-black text-[#0D1B4B] tracking-tighter leading-none">¿Cómo vas a usar DptoLibre?</h2>
+                    </header>
+                    <div className="space-y-4 flex-1">
+                        {['Inquilino', 'Propietario', 'Administrador'].map((role, i) => (
+                            <button key={role} onClick={() => setView('passport_invite')} className="w-full p-6 border-2 border-slate-50 rounded-[2.5rem] text-left flex items-center gap-5 hover:border-[#0055DD] transition-all group">
+                                <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-[#0055DD] group-hover:text-white transition-all"><Icon name={i === 0 ? 'user' : i === 1 ? 'shield' : 'building'} /></div>
+                                <div className="flex-1 font-black text-[#0D1B4B] uppercase text-sm">{role}</div>
+                                <Icon name="chevron-right" className="text-slate-200 group-hover:text-[#0055DD]" />
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const PassportInvite = () => (
+                <div className="mobile-shell passport-gradient flex flex-col justify-center items-center p-12 text-center text-white animate-in">
+                    <Logo light size="lg" />
+                    <h2 className="text-3xl font-black mt-12 uppercase tracking-tighter leading-none">Validación de Perfil</h2>
+                    <p className="text-white/60 text-sm mt-6 leading-relaxed">Para emitir tu Pasaporte, debemos auditar tu identidad y capacidad de pago.</p>
+                    <button onClick={() => setView('val_dni_f')} className="w-full bg-[#00D1FF] text-[#0D1B4B] py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl mt-12">Empezar Auditoría</button>
+                </div>
+            );
+
+            const DniCapture = ({ side, next }) => (
+                <div className="mobile-shell bg-white flex flex-col animate-in">
+                    <header className="p-8 pb-4 flex justify-between items-center"><div><h2 className="text-2xl font-black text-[#0D1B4B] uppercase tracking-tighter">DNI {side}</h2><p className="text-slate-400 text-xs font-bold uppercase mt-1 tracking-widest">Legajo Digital</p></div></header>
+                    <main className="flex-1 p-8 flex flex-col justify-center text-center">
+                        <div className="w-full aspect-[3/2] bg-slate-900 rounded-[2rem] border-4 border-[#0055DD]/10 relative flex flex-col items-center justify-center overflow-hidden shadow-2xl group">
+                             <div className="w-full h-1 bg-[#00D1FF]/40 absolute top-1/2 shadow-[0_0_20px_#00D1FF]"></div>
+                             <Icon name="camera" className="text-white opacity-20" size={48} />
+                        </div>
+                        <button onClick={() => handleScanAction(next)} className="mt-auto w-full bg-[#0D1B4B] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">Capturar {side}</button>
+                    </main>
+                    {isScanning && <LoadingOverlay />}
+                </div>
+            );
+
+            const FaceCapture = () => (
+                <div className="mobile-shell bg-slate-900 flex flex-col items-center justify-center text-white animate-in">
+                    <div className="face-guide flex items-center justify-center"><Icon name="user" size={100} className="text-white/20" /></div>
+                    <div className="mt-12 text-center px-10"><h4 className="text-xl font-black uppercase tracking-widest mb-2">Prueba de Vida</h4><p className="text-white/50 text-sm leading-relaxed italic">Parpadeá tres veces frente a la cámara.</p></div>
+                    <button onClick={() => handleScanAction('val_income')} className="mt-16 bg-[#00D1FF] text-[#0D1B4B] px-12 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl">Iniciar Escaneo</button>
+                </div>
+            );
+
+            const IncomeCapture = () => (
+                <div className="mobile-shell bg-white flex flex-col p-8 animate-in overflow-y-auto no-scrollbar pb-32">
+                    <header className="mb-6">
+                        <h2 className="text-2xl font-black text-[#0D1B4B] uppercase tracking-tighter leading-none">Tus Ingresos</h2>
+                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2 opacity-60">Validación de Solvencia</p>
+                    </header>
+                    
+                    <div className="space-y-6 flex-1">
+                        <div className="bg-slate-900 p-6 rounded-[2rem] text-white shadow-xl relative overflow-hidden">
+                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Alquiler que buscas (Manual)</p>
+                            <div className="flex items-center gap-2">
+                                <span className="text-2xl font-black">$</span>
+                                <input 
+                                    type="number" 
+                                    value={rentIntent} 
+                                    onChange={(e) => setRentIntent(e.target.value)}
+                                    className="bg-transparent text-4xl font-black text-white w-full outline-none border-b-2 border-white/10 focus:border-[#00D1FF] pb-1"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="p-6 bg-slate-50 rounded-[2rem] border-2 border-slate-100 space-y-4">
+                            <h4 className="font-black text-[#0D1B4B] text-xs uppercase tracking-widest">Mis Recibos</h4>
+                            <button 
+                                onClick={() => setIncomeTotal(1200000)}
+                                className="w-full p-4 border-2 border-dashed border-indigo-200 rounded-2xl flex items-center justify-center gap-3 text-indigo-500 font-bold text-xs uppercase bg-white active:scale-95"
+                            >
+                                <Icon name="plus" size={18}/> Subir mis PDF de sueldo
+                            </button>
+                            {incomeTotal > 0 && <p className="text-[9px] text-emerald-600 font-black text-center uppercase">✓ Ingresos Detectados: $1.2M Neto</p>}
+                        </div>
+
+                        {incomeTotal > 0 && (
+                            <div className={`p-6 rounded-[2.5rem] border-2 transition-all ${needsSurety ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'}`}>
+                                <h4 className="font-black text-slate-800 text-[10px] uppercase mb-1">Capacidad de Alquiler</h4>
+                                <p className="text-xl font-black text-slate-900">${capacity.toLocaleString()}</p>
+                                {needsSurety && (
+                                    <p className="text-[9px] text-amber-700 font-medium mt-2 leading-tight">
+                                        No alcanzas el monto buscado. Podrás sumar garantías o contratar caución en el siguiente paso.
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                    <div className="mt-8">
+                        <button onClick={() => setView('val_guarantee')} className="w-full bg-[#0055DD] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">Siguiente</button>
+                        <button onClick={() => setView('val_guarantee')} className="w-full py-3 text-slate-300 font-black text-[9px] uppercase tracking-widest mt-2">Saltar paso (Afecta Score)</button>
+                    </div>
+                </div>
+            );
+
+            const GuaranteeDecision = () => (
+                <div className="mobile-shell bg-white flex flex-col p-8 animate-in overflow-y-auto no-scrollbar pb-32">
+                    <header className="mb-8">
+                        <h2 className="text-2xl font-black text-[#0D1B4B] uppercase tracking-tighter leading-none">Blindaje de Alquiler</h2>
+                        <p className="text-slate-400 text-sm mt-2 font-medium">Resolvé tu garantía en segundos.</p>
+                    </header>
+                    <div className="space-y-4 flex-1">
+                        <div 
+                            onClick={() => { setHasSuretyBond(true); setView('val_history'); }}
+                            className="p-6 border-2 border-indigo-200 rounded-[2.5rem] bg-indigo-50/50 cursor-pointer hover:border-[#0055DD] shadow-premium relative overflow-hidden"
+                        >
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl"><Icon name="shield-check" /></div>
+                                <span className="bg-emerald-100 text-emerald-700 text-[8px] font-black px-2 py-1 rounded uppercase">Pre-Aprobado</span>
+                            </div>
+                            <h4 className="font-black text-[#0D1B4B] uppercase text-sm">Garantía Digital DptoLibre</h4>
+                            <p className="text-xs text-slate-500 mt-2 leading-relaxed">Olvidá los favores a terceros. Aumentá tu capacidad de alquiler con aprobación inmediata.</p>
+                        </div>
+
+                        <div onClick={() => setView('val_third_party')} className="p-6 border-2 border-slate-100 rounded-[2.5rem] bg-white cursor-pointer hover:border-slate-300">
+                            <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mb-4"><Icon name="users" /></div>
+                            <h4 className="font-black text-slate-400 uppercase text-sm">Usar Garantía Tradicional</h4>
+                            <p className="text-[10px] text-slate-400 mt-1">Cargar recibos de terceros o escrituras de familiares.</p>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // --- VISTA SOLICITADA: GARANTÍA DE TERCEROS (IMAGEN) ---
+            const ThirdPartyGuaranteeView = () => (
+                <div className="mobile-shell third-party-bg flex flex-col p-8 justify-center animate-in">
+                    <div className="bg-white/40 p-10 rounded-[3rem] border border-white/60 shadow-xl">
+                        <h2 className="text-2xl font-extrabold text-[#2D3142] uppercase tracking-tight mb-4 text-center">Garantía de Terceros</h2>
+                        <p className="text-indigo-500 text-sm font-medium text-center leading-relaxed mb-10">
+                            ¿Vas a presentar recibos de otros o una propiedad? Enviáles un link para que carguen todo por vos.
+                        </p>
+
+                        <div className="grid grid-cols-2 gap-4 mb-10">
+                            <button className="bg-white aspect-square rounded-[2rem] shadow-sm flex flex-col items-center justify-center gap-3 border border-slate-50 hover:shadow-md transition-shadow">
+                                <div className="text-indigo-400 opacity-60"><Icon name="file-text" size={32} /></div>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Recibos</span>
+                            </button>
+                            <button className="bg-white aspect-square rounded-[2rem] shadow-sm flex flex-col items-center justify-center gap-3 border border-slate-50 hover:shadow-md transition-shadow">
+                                <div className="text-indigo-400 opacity-60"><Icon name="building-2" size={32} /></div>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Propiedad</span>
+                            </button>
+                        </div>
+
+                        <button 
+                            onClick={() => setView('val_history')}
+                            className="w-full btn-share text-white py-5 rounded-3xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-2xl active:scale-95 transition-all"
+                        >
+                            <Icon name="share-2" size={18} /> Compartir Link de Invitación
+                        </button>
+                    </div>
+                </div>
+            );
+
+            const HistoryView = () => (
+                <div className="mobile-shell bg-white flex flex-col p-8 animate-in">
+                    <header className="mb-10 flex justify-between items-end">
+                        <h2 className="text-2xl font-black text-[#0D1B4B] uppercase tracking-tighter leading-none">Trayectoria</h2>
+                        <Icon name="history" className="text-slate-200" size={40} />
+                    </header>
+                    <div className="flex-1 space-y-6">
+                        <button 
+                            onClick={() => setIsFirstRental(!isFirstRental)}
+                            className={`w-full p-6 border-2 rounded-[2rem] flex items-center gap-4 transition-all ${isFirstRental ? 'bg-emerald-50 border-emerald-500' : 'bg-slate-50 border-slate-100'}`}
+                        >
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isFirstRental ? 'bg-emerald-500 text-white' : 'bg-slate-200'}`}><Icon name="check" size={18}/></div>
+                            <div className="text-left"><h4 className="font-black text-slate-800 text-sm uppercase">Es mi primer alquiler</h4></div>
+                        </button>
+                        {!isFirstRental && (
+                            <div className="space-y-4">
+                                <input type="text" placeholder="Última dirección" className="w-full bg-slate-50 border-none p-5 rounded-2xl text-sm font-bold" />
+                                <input type="text" placeholder="Referencia (Nombre Inmo/Dueño)" className="w-full bg-slate-50 border-none p-5 rounded-2xl text-sm font-bold" />
+                            </div>
+                        )}
+                    </div>
+                    <button onClick={() => setView('home')} className="w-full bg-[#0D1B4B] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">Finalizar Pasaporte</button>
+                </div>
+            );
+
+            const HomeView = () => (
+                <div className="mobile-shell bg-[#F0F2F6] flex flex-col animate-in overflow-y-auto no-scrollbar pb-32">
+                    <header className="p-8 bg-white border-b flex justify-between items-center sticky top-0 z-20">
+                        <Logo />
+                        <div className="w-10 h-10 rounded-full border-2 border-indigo-600 bg-slate-100 overflow-hidden"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Marcos" alt="Avatar" /></div>
+                    </header>
+                    <main className="p-6 space-y-6">
+                        <div className="passport-gradient p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden flex flex-col gap-8">
+                            <Icon name="shield-check" size={150} className={`absolute right-[-40px] top-[-40px] opacity-10 ${hasSuretyBond ? 'text-emerald-400 opacity-20' : ''}`} />
+                            <div><p className="text-[10px] font-black uppercase text-[#00D1FF] tracking-widest">Pasaporte de Alquiler</p><h2 className="text-4xl font-black tracking-tighter mt-1">$550.000</h2></div>
+                            {hasSuretyBond && <div className="bg-emerald-500/20 border border-emerald-400/30 p-3 rounded-2xl flex items-center gap-3"><Icon name="check-circle" size={18} className="text-emerald-400" /><p className="text-[10px] font-bold text-emerald-100">Garantía Digital Pre-aprobada</p></div>}
+                            <button className="w-full bg-white/10 p-4 rounded-2xl border border-white/10 flex items-center justify-center gap-3 font-black text-xs uppercase tracking-widest"><Icon name="share-2" size={16} className="text-[#00D1FF]" /> Compartir Perfil</button>
+                        </div>
+                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 text-center space-y-6 shadow-sm">
+                            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto text-slate-300"><Icon name="file-search" size={32} /></div>
+                            <h4 className="font-black text-[#0D1B4B] uppercase text-sm">Vincular mi contrato</h4>
+                            <button className="w-full bg-[#0055DD] text-white py-5 rounded-[2rem] font-black text-xs uppercase shadow-xl flex items-center justify-center gap-3"><Icon name="qr-code" size={18}/> ESCANEAR QR</button>
+                        </div>
+                    </main>
+                    <nav className="absolute bottom-0 w-full bg-white/90 backdrop-blur-md border-t p-6 pb-10 flex justify-around"><Icon name="home" className="text-[#0055DD]" strokeWidth={3}/><Icon name="search" className="text-slate-300" /><Icon name="wallet" className="text-slate-300" /><Icon name="user" className="text-slate-300" /></nav>
+                </div>
+            );
+
+            const LoadingOverlay = () => (
+                <div className="absolute inset-0 bg-white/90 backdrop-blur-md z-[200] flex flex-col items-center justify-center animate-in">
+                    <div className="w-16 h-16 border-4 border-[#0055DD] border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-xs font-black text-[#0055DD] uppercase tracking-widest">Analizando con IA...</p>
+                </div>
+            );
+
+            return (
+                <div className="h-screen w-full flex flex-col items-center justify-center p-4">
+                    <div className="mobile-shell">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-[#0D1B4B] rounded-b-3xl z-[150] flex items-center justify-center gap-2 shadow-lg"><div className="w-1.5 h-1.5 rounded-full bg-white/20"></div><div className="w-10 h-1 bg-white/20 rounded-full"></div></div>
+                        {view === 'login' && <LoginView />}
+                        {view === 'role_selection' && <RoleView />}
+                        {view === 'passport_invite' && <PassportInvite />}
+                        {view === 'val_dni_f' && <DniCapture side="Frente" next="val_dni_d" />}
+                        {view === 'val_dni_d' && <DniCapture side="Dorso" next="val_face" />}
+                        {view === 'val_face' && <FaceCapture />}
+                        {view === 'val_income' && <IncomeCapture />}
+                        {view === 'val_guarantee' && <GuaranteeDecision />}
+                        {view === 'val_third_party' && <ThirdPartyGuaranteeView />}
+                        {view === 'val_history' && <HistoryCapture />}
+                        {view === 'home' && <HomeView />}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<DptoLibreApp />);
+    </script>
+</body>
+</html>
