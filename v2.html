@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DptoLibre - Contrato Vinculado V2</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --brand-blue: #0055DD;
+            --brand-dark: #0D1B4B;
+            --brand-cyan: #00D1FF;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #cbd5e1;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+        }
+
+        .mobile-shell {
+            width: 100%;
+            height: 100vh;
+            max-width: 414px;
+            margin: 0 auto;
+            background: #F0F2F6;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.2);
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        .animate-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .passport-gradient {
+            background: linear-gradient(135deg, #0D1B4B 0%, #0055DD 100%);
+        }
+
+        /* Animación Puerta Abriéndose */
+        .door-container {
+            perspective: 1000px;
+            display: flex;
+            gap: 2px;
+        }
+        .door-left {
+            transform-origin: left;
+            animation: openLeft 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation-delay: 0.8s;
+        }
+        .door-right {
+            transform-origin: right;
+            animation: openRight 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation-delay: 0.8s;
+        }
+        @keyframes openLeft {
+            to { transform: rotateY(-110deg); opacity: 0; }
+        }
+        @keyframes openRight {
+            to { transform: rotateY(110deg); opacity: 0; }
+        }
+
+        /* Animación Llave */
+        .key-float {
+            animation: floatKey 2s ease-in-out infinite;
+        }
+        @keyframes floatKey {
+            0%, 100% { transform: translateY(0) rotate(-10deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+
+        .success-bg {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const Icon = ({ name, size = 24, className = "" }) => {
+            useEffect(() => { window.lucide && window.lucide.createIcons(); }, [name, size, className]);
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
+
+        const AnimatedLogo = () => (
+            <div className="door-container relative w-32 h-40">
+                <svg className="door-left w-1/2 h-full" viewBox="0 0 16 40" fill="none">
+                    <path d="M16 6.4L0 0V33.6L16 40V6.4Z" fill="#00D1FF" />
+                </svg>
+                <svg className="door-right w-1/2 h-full" viewBox="16 0 16 40" fill="none">
+                    <path d="M16 0L32 6.4V33.6L16 40V6.4V0Z" fill="#00D1FF" fillOpacity="0.4" />
+                </svg>
+            </div>
+        );
+
+        const Logo = ({ light = false, size = "md" }) => (
+            <div className={`flex flex-col items-center ${light ? 'text-white' : 'text-[#0D1B4B]'}`}>
+                <svg width={size === "lg" ? "56" : "32"} viewBox="0 0 32 40" fill="none">
+                    <path d="M16 0L32 6.4V33.6L16 40V6.4L16 0Z" fill={light ? "white" : "#0055DD"} fillOpacity="0.3"/>
+                    <path d="M0 6.4L16 0V33.6L0 40V6.4Z" fill={light ? "white" : "#0055DD"}/>
+                </svg>
+                <div className={`logo-font font-extrabold ${size === "lg" ? 'text-2xl mt-2' : 'text-lg mt-1'}`}>
+                    dpto <span className="font-light">libre</span>
+                </div>
+            </div>
+        );
+
+        function DptoLibreApp() {
+            // VIEWS: contract_linked, link_bank, move_in_payment, signature, achievement, home_active
+            const [view, setView] = useState('contract_linked'); 
+            const [isScanning, setIsScanning] = useState(false);
+
+            const handleTransition = (nextView, delay = 1800) => {
+                setIsScanning(true);
+                setTimeout(() => {
+                    setIsScanning(false);
+                    setView(nextView);
+                }, delay);
+            };
+
+            // --- 1. PANTALLA: CONTRATO VINCULADO ---
+            const ContractLinkedView = () => (
+                <div className="mobile-shell bg-white flex flex-col p-10 justify-center text-center animate-in">
+                    <div className="relative mb-8">
+                        <div className="w-24 h-24 bg-indigo-50 rounded-[2.5rem] flex items-center justify-center mx-auto text-indigo-600 shadow-inner">
+                            <Icon name="file-search" size={48} />
+                        </div>
+                        <div className="absolute top-0 right-[35%] bg-emerald-500 text-white p-2 rounded-full border-4 border-white shadow-lg">
+                            <Icon name="check" size={16} strokeWidth={4}/>
+                        </div>
+                    </div>
+                    <h2 className="text-2xl font-black text-[#0D1B4B] uppercase tracking-tighter leading-tight">¡Contrato Vinculado!</h2>
+                    <p className="text-slate-400 text-sm mt-4 leading-relaxed px-2">
+                        Hemos detectado un contrato activo de <strong>Inmobiliaria Raíces</strong> asignado a tu pasaporte digital.
+                    </p>
+                    
+                    <div className="bg-[#0D1B4B] rounded-[2rem] p-6 mt-10 text-white text-left shadow-2xl relative overflow-hidden">
+                         <Icon name="building-2" size={100} className="absolute right-[-20px] bottom-[-20px] opacity-10" />
+                         <p className="text-[10px] font-black uppercase text-indigo-400 mb-1">Propiedad Asociada</p>
+                         <h4 className="text-lg font-bold mb-4">Caseros 1230, 4B</h4>
+                         <div className="grid grid-cols-2 gap-4">
+                             <div>
+                                 <p className="text-[8px] font-bold opacity-50 uppercase tracking-widest">Alquiler Base</p>
+                                 <p className="text-sm font-black text-emerald-400">$450.000</p>
+                             </div>
+                             <div>
+                                 <p className="text-[8px] font-bold opacity-50 uppercase tracking-widest">Expensas</p>
+                                 <p className="text-sm font-black text-indigo-300">$65.000</p>
+                             </div>
+                         </div>
+                    </div>
+
+                    <button onClick={() => setView('link_bank')} className="mt-12 w-full bg-[#0055DD] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                        Continuar a Cuenta de Pago
+                    </button>
+                </div>
+            );
+
+            // --- 2. PANTALLA: VINCULACIÓN BANCARIA ---
+            const LinkBankView = () => (
+                <div className="mobile-shell bg-white flex flex-col p-10 animate-in">
+                    <header className="mb-10 text-center pt-10">
+                        <h2 className="text-2xl font-black text-[#0D1B4B] uppercase tracking-tighter leading-none">Cuenta de Pago</h2>
+                        <p className="text-slate-400 text-sm mt-2 leading-relaxed">Configurá el CBU o Alias desde donde realizarás los pagos mensuales.</p>
+                    </header>
+                    <div className="space-y-6 flex-1">
+                        <div className="space-y-2">
+                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">CBU o Alias de tu cuenta</label>
+                             <input type="text" placeholder="ej: marcos.galperin.banco" className="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-2xl text-sm font-bold focus:border-[#0055DD] outline-none transition-all shadow-inner" />
+                        </div>
+                        <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100 flex gap-4">
+                             <Icon name="shield-check" className="text-emerald-600 shrink-0" size={24} />
+                             <p className="text-[10px] text-emerald-700 font-bold leading-relaxed">
+                                 <strong>Seguridad Blindato:</strong> Validamos la titularidad vía COELSA para asegurar que los pagos sean 100% digitales y trazables.
+                             </p>
+                        </div>
+                    </div>
+                    <button onClick={() => handleTransition('move_in_payment')} className="w-full bg-[#0D1B4B] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                        Validar y Continuar
+                    </button>
+                </div>
+            );
+
+            // --- 3. PANTALLA: GASTOS DE INGRESO (CON COSTO CAUCIÓN) ---
+            const MoveInPaymentView = () => (
+                <div className="mobile-shell bg-slate-900 text-white flex flex-col p-10 animate-in overflow-y-auto no-scrollbar">
+                    <header className="mb-8">
+                        <h2 className="text-2xl font-black uppercase tracking-tighter leading-none">Gastos de Ingreso</h2>
+                        <p className="text-indigo-400 text-[10px] font-black uppercase mt-1 tracking-widest">Liquidación para activación de hogar</p>
+                    </header>
+                    <div className="flex-1 space-y-4">
+                        {[
+                            { l: 'Mes de Adelanto', v: 450000 },
+                            { l: 'Garantía de Caución Blindato', v: 45000 },
+                            { l: 'Módulo Verificación DptoLibre', v: 5000 },
+                            { l: 'Honorarios Inmobiliaria', v: 22500 },
+                            { l: 'Sello Legal Digital', v: 1200 }
+                        ].map((item, i) => (
+                            <div key={i} className="flex justify-between items-center py-4 border-b border-white/10">
+                                <span className={`text-xs font-bold uppercase tracking-wider ${item.l.includes('Caución') ? 'text-[#00D1FF]' : 'text-white/50'}`}>
+                                    {item.l}
+                                </span>
+                                <span className="text-sm font-black">${item.v.toLocaleString()}</span>
+                            </div>
+                        ))}
+                        <div className="pt-8 flex justify-between items-center text-emerald-400">
+                             <span className="text-xs font-black uppercase tracking-widest">Total a Liquidar</span>
+                             <span className="text-3xl font-black">$523.700</span>
+                        </div>
+                    </div>
+                    <div className="bg-white/5 p-6 rounded-[2rem] border border-white/10 my-8 flex gap-3">
+                         <Icon name="info" className="text-[#00D1FF] shrink-0" size={18}/>
+                         <p className="text-[10px] font-bold text-white/40 leading-relaxed italic">
+                             Al confirmar, orquestaremos la transferencia bancaria para cancelar la totalidad de los gastos de ingreso.
+                         </p>
+                    </div>
+                    <button onClick={() => setView('signature')} className="w-full bg-[#00D1FF] text-[#0D1B4B] py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl active:scale-95 transition-all">
+                        Confirmar y Pagar
+                    </button>
+                </div>
+            );
+
+            // --- 4. PANTALLA: FIRMA DIGITAL ---
+            const SignatureView = () => (
+                <div className="mobile-shell bg-white flex flex-col animate-in">
+                    <header className="p-8 border-b border-slate-100 flex justify-between items-center">
+                        <div>
+                            <h2 className="text-xl font-black text-[#0D1B4B] uppercase tracking-tighter">Firma de Contrato</h2>
+                            <p className="text-[8px] font-black text-slate-400 uppercase mt-1 tracking-widest">LEGAJO: BL-9921882</p>
+                        </div>
+                        <Icon name="lock" size={24} className="text-slate-200"/>
+                    </header>
+                    <main className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-50 no-scrollbar text-justify">
+                        <div className="bg-white p-8 rounded-3xl shadow-sm text-[9px] text-slate-500 font-mono space-y-4 leading-relaxed border border-slate-100">
+                             <p className="font-black text-[#0D1B4B] text-center uppercase border-b pb-4 mb-4 leading-none text-[10px]">Contrato de Locación</p>
+                             <p>Entre el Sr Roberto Daer (LOCADOR) y el Sr Marcos Galperin (LOCATARIO)...</p>
+                             <p><strong>CLÁUSULA PRIMERA:</strong> Objeto. El locador entrega en locación el inmueble de Caseros 1230...</p>
+                             <div className="h-32 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl italic text-[10px] text-slate-300">Deslizá para leer el documento completo</div>
+                             <p>En prueba de conformidad, se firma digitalmente bajo sello de Infoexperto ID para un blindaje legal absoluto.</p>
+                        </div>
+                    </main>
+                    <footer className="p-8 bg-white border-t border-slate-100 flex flex-col gap-4">
+                         <div className="flex items-center gap-3 mb-2">
+                             <input type="checkbox" className="w-5 h-5 accent-[#0055DD] rounded-lg" id="terms" />
+                             <label htmlFor="terms" className="text-[10px] font-bold text-slate-500 uppercase">Acepto los términos y el blindaje legal</label>
+                         </div>
+                         <button onClick={() => setView('achievement')} className="w-full bg-[#0D1B4B] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all">
+                            <Icon name="pen-tool" size={16} /> FIRMAR CON INFOEXPERTO-ID
+                         </button>
+                    </footer>
+                </div>
+            );
+
+            // --- 5. PANTALLA: LOGRO (ANIMACIÓN LLAVE Y LOGO) ---
+            const AchievementView = () => {
+                useEffect(() => {
+                    const timer = setTimeout(() => {
+                        setView('home_active');
+                    }, 4000);
+                    return () => clearTimeout(timer);
+                }, []);
+
+                return (
+                    <div className="mobile-shell passport-gradient flex flex-col items-center justify-center p-10 text-center text-white overflow-hidden">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/10 to-transparent opacity-30"></div>
+                        
+                        {/* Animación de la Llave */}
+                        <div className="key-float mb-8 relative z-20">
+                            <div className="w-24 h-24 bg-amber-400 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(251,191,36,0.5)]">
+                                <Icon name="key" size={48} className="text-[#0D1B4B]" strokeWidth={2.5} />
+                            </div>
+                            <div className="absolute -inset-4 border-2 border-white/20 rounded-full animate-ping"></div>
+                        </div>
+
+                        {/* Animación del Logo-Puerta */}
+                        <div className="relative mb-10 z-20 flex flex-col items-center">
+                            <AnimatedLogo />
+                            <div className="mt-8">
+                                <h1 className="text-4xl font-black tracking-tighter uppercase leading-none mb-2">¡LO LOGRASTE!</h1>
+                                <p className="text-[#00D1FF] font-black uppercase text-xs tracking-[0.2em]">Hogar Abierto</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 z-20">
+                            <p className="text-sm font-medium opacity-70 leading-relaxed px-6">
+                                Tu contrato está firmado y blindado. <br/> Bienvenido a tu nueva forma de vivir.
+                            </p>
+                        </div>
+
+                        {/* Partículas de Éxito Simbolizadas */}
+                        <div className="absolute bottom-20 left-10 animate-bounce delay-100 opacity-20"><Icon name="sparkles" size={40}/></div>
+                        <div className="absolute top-40 right-10 animate-bounce delay-500 opacity-20"><Icon name="sparkles" size={32}/></div>
+                    </div>
+                );
+            };
+
+            // --- 6. PANTALLA FINAL: HOME ACTIVA ---
+            const HomeActiveView = () => (
+                <div className="mobile-shell bg-[#F0F2F6] flex flex-col animate-in overflow-y-auto no-scrollbar pb-32">
+                    <header className="p-8 bg-white border-b flex justify-between items-center sticky top-0 z-20 shadow-sm">
+                        <Logo />
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full border-2 border-emerald-500 overflow-hidden bg-slate-100 shadow-sm">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Marcos" alt="Avatar" />
+                            </div>
+                        </div>
+                    </header>
+                    <main className="p-6 space-y-6">
+                        {/* Status Card Activa */}
+                        <div className="passport-gradient p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden flex flex-col gap-10">
+                            <Icon name="shield-check" size={150} className="absolute right-[-40px] top-[-40px] opacity-10" />
+                            <div className="flex justify-between items-start z-10">
+                                <span className="bg-emerald-500 text-[#0D1B4B] px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">Alquiler Activo</span>
+                                <button className="bg-white/10 p-2 rounded-xl backdrop-blur-md border border-white/10 active:scale-90"><Icon name="share-2" size={18}/></button>
+                            </div>
+                            <div className="z-10">
+                                <h3 className="text-3xl font-black tracking-tighter leading-none mb-1">Caseros 1230, 4B</h3>
+                                <p className="text-xs text-[#00D1FF] font-bold uppercase tracking-wider">Vence: 05 de Mayo</p>
+                            </div>
+                            <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-6 z-10">
+                                <div><p className="text-[8px] font-bold opacity-50 uppercase tracking-widest">Rinde por mes</p><p className="text-xl font-black text-white">+$1.240 <span className="text-[10px] text-[#00D1FF] font-bold uppercase tracking-tighter">Yield</span></p></div>
+                                <button className="bg-white text-slate-900 px-6 py-3 rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95">Gestionar</button>
+                            </div>
+                        </div>
+
+                        {/* Módulo de Billetera Blindato */}
+                        <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+                            <div className="flex justify-between items-center mb-4 px-1">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Mi Billetera Blindato</p>
+                                <Icon name="trending-up" size={16} className="text-emerald-500" />
+                            </div>
+                            <h2 className="text-4xl font-black text-slate-900 tracking-tighter mb-8">$ 985,430</h2>
+                            <div className="grid grid-cols-3 gap-2 mb-8 text-center">
+                                <div><p className="text-[8px] font-black text-slate-400 uppercase mb-1">Blindado</p><p className="text-xs font-bold text-slate-700">$900k</p></div>
+                                <div><p className="text-[8px] font-black text-slate-400 uppercase mb-1">Intereses</p><p className="text-xs font-bold text-emerald-600">+$12.4k</p></div>
+                                <div><p className="text-[8px] font-black text-slate-400 uppercase mb-1">Resguardo</p><p className="text-xs font-bold text-indigo-400">$73k</p></div>
+                            </div>
+                            <div className="flex gap-4">
+                                <button className="flex-1 bg-[#0055DD] text-white py-4 rounded-xl font-black text-[10px] uppercase active:scale-95 transition-all">Ingresar</button>
+                                <button className="flex-1 bg-white border border-slate-200 text-slate-400 py-4 rounded-xl font-black text-[10px] uppercase active:scale-95 transition-all">Retirar</button>
+                            </div>
+                        </div>
+
+                        {/* Rampa Hipotecaria */}
+                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden">
+                             <Icon name="trending-up" className="absolute right-4 top-4 text-emerald-500" />
+                             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Meta Casa Propia</h4>
+                             <div className="h-4 bg-slate-50 rounded-full overflow-hidden mb-4 border p-1"><div className="h-full bg-gradient-to-r from-[#0055DD] to-emerald-400 rounded-full shadow-[0_0_15px_rgba(0,85,221,0.4)]" style={{ width: '82%' }}></div></div>
+                             <p className="text-[9px] text-slate-500 font-bold italic leading-relaxed text-center px-4">"Tu racha perfecta te acerca a la casa propia. Estás a solo 2 pagos de calificar."</p>
+                        </div>
+                    </main>
+
+                    {/* Bottom Nav */}
+                    <nav className="absolute bottom-0 w-full bg-white/90 backdrop-blur-md border-t p-6 pb-10 flex justify-around items-center z-[50]">
+                        <button className="text-[#0055DD] flex flex-col items-center gap-1 transition-all scale-110"><Icon name="home" strokeWidth={3}/><span className="text-[8px] font-black uppercase">Home</span></button>
+                        <button className="text-slate-300 flex flex-col items-center gap-1"><Icon name="list" /><span className="text-[8px] font-black uppercase">Actividad</span></button>
+                        <button className="bg-slate-50 p-3 rounded-full text-indigo-600 shadow-inner border border-slate-100"><Icon name="shield-check" strokeWidth={2.5}/></button>
+                        <button className="text-slate-300 flex flex-col items-center gap-1"><Icon name="wrench" /><span className="text-[8px] font-black uppercase">Gestión</span></button>
+                        <button className="text-slate-300 flex flex-col items-center gap-1"><Icon name="user" /><span className="text-[8px] font-black uppercase">Perfil</span></button>
+                    </nav>
+                </div>
+            );
+
+            // --- LÓGICA DE RENDERIZADO ---
+            return (
+                <div className="h-screen w-full flex flex-col items-center justify-center p-4">
+                    <div className="mobile-shell">
+                        {/* Notch Mobile */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-[#0D1B4B] rounded-b-3xl z-[150] flex items-center justify-center gap-2 shadow-lg">
+                            <div className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+                            <div className="w-10 h-1 bg-white/20 rounded-full"></div>
+                        </div>
+
+                        {view === 'contract_linked' && <ContractLinkedView />}
+                        {view === 'link_bank' && <LinkBankView />}
+                        {view === 'move_in_payment' && <MoveInPaymentView />}
+                        {view === 'signature' && <SignatureView />}
+                        {view === 'achievement' && <AchievementView />}
+                        {view === 'home_active' && <HomeActiveView />}
+
+                        {isScanning && (
+                            <div className="absolute inset-0 bg-white/90 backdrop-blur-md z-[200] flex flex-col items-center justify-center animate-in">
+                                <div className="w-16 h-16 border-4 border-[#0055DD] border-t-transparent rounded-full animate-spin mb-4 shadow-[0_0_15px_rgba(0,85,221,0.2)]"></div>
+                                <p className="text-xs font-black text-[#0055DD] uppercase tracking-widest animate-pulse uppercase tracking-[0.2em]">Procesando...</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<DptoLibreApp />);
+    </script>
+</body>
+</html>
